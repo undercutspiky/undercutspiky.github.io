@@ -1,12 +1,13 @@
-const purgecss = require('@fullhuman/postcss-purgecss')({  
+const purgecss = require('@fullhuman/postcss-purgecss')({
     content: [
         // Jekyll output directory
         './_site/**/*.html',
     ],
     defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || [],
+    whitelistPatterns: [/^.[^\.]*\.[^\. "']*/g]
 });
 
-module.exports = {  
+module.exports = {
     plugins: [
         require('tailwindcss'),
         require('cssnano')(),
@@ -16,4 +17,3 @@ module.exports = {
             : []
     ]
 };
-
