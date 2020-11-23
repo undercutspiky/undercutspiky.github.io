@@ -7,7 +7,7 @@ defaults:
 exclude:
   - "*.config.js"
   - "package*.json"
-  - "assets"
+  - "assets/index.css"
   - "node_modules"
 
 baseurl: /
