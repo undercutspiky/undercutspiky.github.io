@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind utilities;
 
-a.nav-bar::after{
+a.nav-bar::after {
   content: "";
   position: absolute;
   width: 100%;
@@ -13,7 +13,67 @@ a.nav-bar::after{
   transform: scaleX(0);
   transition: all 0.3s ease-in-out;
 }
+@screen xl {
+  a.nav-bar::after {
+    top: 3rem;
+  }
+}
 a.nav-bar:hover::after {
   visibility: visible;
   transform: scaleX(0.64);
+}
+p.blog-post {
+  @apply mb-2;
+}
+h1.blog-post {
+  @apply mb-6 mt-10 text-4xl font-raleway font-black text-black;
+}
+ul.blog-post {
+  list-style-type: "-";
+  @apply ml-8 mb-2 list-outside;
+}
+ol.blog-post {
+  list-style-type: decimal;
+  @apply ml-8 mb-2 list-outside;
+}
+ul.blog-post > li, ol.blog-post > li {
+  @apply pl-2
+}
+sub, sup {
+  font-size: 85%;
+}
+#citations > li {
+  scroll-margin-top: 8rem; /* Needs to be aligned with the height of the nav bar */
+}
+span.ref {
+  position: relative;
+  display: inline-block;
+}
+span.ref:hover {
+  text-decoration: underline;
+}
+span.ref:before {
+  content: attr(data-text); /* here's the magic */
+  position:absolute;
+  bottom:100%;
+  --width: 40rem;
+  width: var(--width);
+  margin-left:calc(var(--width)*-0.5); /* Move it to the centre */
+  /* basic styles */
+  @apply text-sm p-4 rounded-md bg-black bg-opacity-90 text-justify opacity-0 invisible;
+  transition: opacity 300ms, visibility 300ms;
+  color: #d26c5c;
+}
+span.ref:hover:before {
+  display:inline-block;
+  @apply opacity-100 visible;
+}
+figure {
+  @apply mb-6 mt-4;
+}
+figure > img {
+  @apply block m-auto mb-4;
+}
+figure > figcaption {
+  @apply text-center text-md;
 }

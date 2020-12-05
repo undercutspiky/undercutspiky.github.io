@@ -1,0 +1,139 @@
+---
+layout: blog_post
+title: 4 deep learning papers that will surprise you
+thumbnail: /assets/images/4 DL papers/thumbnail.jpg
+subtitle: Some lesser known papers which show some amazing aspects of neural networks you didn't know of.
+---
+<p class="blog-post">
+In this post, I'd like to give an overview of some research papers I find fascinating but are not popular enough. There are many papers which are amazing but also very popular. I instead wanted to pick some which are fabulous but not THAT (or not at all) popular. In general, I'd anyway like to avoid writing about papers which are already popular and have a plethora of blog posts talking about them.
+</p>
+<p class="blog-post">
+I hope you learn something new with this post and end up adding some papers (cited here) to your reading list.
+</p>
+<p class="blog-post">
+Two things to note:
+</p>
+<ol class="blog-post">
+  <li>I expect you to have a strong background in deep learning for making sense of this overview.</li>
+  <li>I'll be using the terms matrices, parameters, and weights interchangeably.</li>
+</ol>
+<h1 class="blog-post">Feedback Alignment</h1>
+<p class="blog-post">
+The basic idea of Feedback Alignment (FA) <span class="ref">[1]</span> is to use different matrices for the forward and backward pass of the backpropagation. Moreover, the matrices used for the backward pass are fixed and random. Let me elaborate. Recall how backpropagation works:
+</p>
+<p class="blog-post">
+  <ol class="blog-post">
+    <li> Propagate the input from the input layer to the output layer via hidden layers (forward pass).</li>
+    <li> Calculate the loss.</li>
+    <li> Propagate the error backwards from the output layer to the hidden layers (backward pass).</li>
+  </ol>
+</p>
+<p class="blog-post">
+The matrices used for propagation in step 1 and step 3 are the same - the weights of the model. In step 3, once you have the error at layer<sub>i</sub>, you multiply it with the layer's parameters to get the error for the layer<sub>i-1</sub> (ignoring details like propagating error through the activation function). But one could say that steps 1 and 3 have two different matrices which happen to be identical and remain identical throughout the training. What FA does is introduce new random matrices for step 3 and keep them fixed throughout the training. So you calculate the loss at the output layer and randomly project it back to the hidden layers to train the network. And this works! It's surprising because the parameters of the network receive some random projection of the loss, and they somehow learn to make use of it. For this, they need to change in a way that the randomly projected loss makes sense for them and propels them towards values which solve the training task at hand. You probably also understand the name "Feedback Alignment" now. The parameters learn to "align" with the "feedback" received via fixed random matrices.
+</p>
+<p class="blog-post">
+A follow-up work by Arild Nøkland proposed the "Direct Feedback Alignment" (DFA) <span class="ref">[2]</span> method where the error is directly propagated from the output layer to each individual hidden layer. To reach layer <sub>i</sub>, the error doesn't need to go through the layers i+1 to n which are closer to the output layer. This works as well and has an added advantage that the layers can be trained in parallel.
+</p>
+<figure>
+  <img src="/assets/images/4 DL papers/BP_FA_DFA.png">
+  <figcaption>Fig 1. a)Backpropagation, b)Feedback Alignment and c)Direct Feedback Alignment. Source: <span class="ref"> [2] </span></figcaption>
+</figure>
+<p class="blog-post">
+While FA does perform reasonably well on MNIST and CIFAR, it fails to do so on ImageNet with large networks. But one can make this work by relaxing the relation (or rather the lack of it) between weights used for the forward and backward pass. <cite>Xiao et al.</cite> <span class="ref">[3]</span> and <cite>Moskovitz et al.</cite> <span class="ref">[4]</span> show that if you use "sign-concordant feedback" from <cite>Liao et al.</cite> <span class="ref">[5]</span>, FA can perform almost as good as backpropagation. What sign-concordance/sign-symmetry means is that the signs(+/-) of the weights used for the forward and backward pass should be the same, i.e. the magnitude of the parameters used for the backward pass are still fixed and random but share the sign with the parameters used for the forward pass. So it's really just the signs of the parameters that matter! Fig 2 below from <cite>Xiao et al.</cite> <span class="ref">[3]</span> shows how sign-concordant feedback performs nearly as well backpropagation. We'll see the importance of the signs of the parameters later as well.
+</p>
+<figure>
+  <img src="/assets/images/4 DL papers/FA_Comparison.jpg">
+  <figcaption>Fig 2. a) Top-1 and b) top-5 validation error on ImageNet for ResNet-18 and AlexNet trained with different learning algorithms. Sign-symmetry performs nearly as well as backpropagation. Source: <span class="ref"> [3] </span></figcaption>
+</figure>
+<h1 class="blog-post">Predicting the future while training a network</h1>
+<p class="blog-post">
+"Introspection: Accelerating neural network training by learning weight evolution" by <cite>Sinha et al.</cite> <span class="ref">[6]</span> shows something exciting: you can predict what the value of a parameter is going to be far in training while training the network before you reach that point! It's one obvious implication is that you can reduce the training time by directly jumping to the future values of the parameters. How much? Well, that, of course, depends on how good the predictor (of future parameter values) is, when (during the training) can you make the jump, and how far. You should check the paper for answers to these and other similar questions but, in short, there's no golden rule (yet) to make these choices, and they need to be determined empirically. But that is how any work in a particular direction starts. The first attempt requires quite some manual tuning, and the results are not that awesome, but things improve over time. Results get better, and it gets easier to finetune hyperparameters. That's how it happened, for instance, for object detection. But let's not meander and come back to the paper. The way the "future value predictor" works is that it looks at the trajectory of each parameter individually and predicts the future trajectory just like you'd do in time-series forecasting. To be more precise, it looks at a bunch of past values, not the whole trajectory and predicts one future value for a particular timestamp instead of forecasting the whole trajectory.
+</p>
+<figure>
+  <img class="md:w-2/3 lg:w-1/2" src="/assets/images/4 DL papers/introspection_network_plot.png">
+  <figcaption>Fig 3. Validation accuracy plot for AlexNet on ImageNet. The green lines indicate the steps at which predictions for the future values of the parameters was made. Notice how the accuracy initially drops before it gets higher than usual, indicating that the network takes some time to adjust to the jump. Authors attribute this to the prediction being made individually for each parameter. The individual prediction doesn't take into account how weights are related to each other. Source: <span class="ref"> [6] </span></figcaption>
+</figure>
+<p class="blog-post">
+Two other things in the paper I found as amazing as the main idea are:
+</p>
+<ol class="blog-post">
+  <li>The predictor (which they call introspection network) is really small in size. It's a fully-connected network with just one hidden layer with 40 neurons. The input layer has 4 neurons, and the output layer has 1.</li>
+  <li>The predictor was trained ONLY on the trajectories of the parameters of a network trained on MNIST. The network trained on MNIST comprises of 3 convolutional layers and 2 fully-connected layers. The introspection network is still able to predict the trajectories of networks being trained on CIFAR and ImageNet.</li>
+</ol>
+<p class="blog-post">
+The paper is easy to read. I'd encourage you to do that if you're interested in the details and the results they obtain. Some open questions which remain unanswered are:
+</p>
+<ul class="blog-post">
+  <li>Would the introspection network perform better with its training data generated differently?</li>
+  <li>Would the introspection network be better if it's trained on MNIST + CIFAR + ImageNet?</li>
+  <li>Can the initial drop in the accuracy, when the jump is made, really be explained by how weights relate to each other?</li>
+  <li>And most importantly, how far can you take this idea? Can it be used to reduce the training time significantly for training on gigantic datasets?</li>
+</ul>
+<p class="blog-post">
+The only other work I'm aware of (which by the way this paper also cites) which goes in the direction of predicting "future" of training is <cite>Synthetic Gradients</cite> <span class="ref">[7]</span>. The basic idea there was to predict the gradients for a network's module (e.g. a layer) and train that module on them instead of training on the real gradients. The gradient predictors are then trained on the true gradients received later in the backward pass.
+</p>
+<h1 class="blog-post">Exploration of the lottery ticket hypothesis</h1>
+<p class="blog-post">
+<cite>Zhou et al.</cite> in <span class="ref">[8]</span> analyse various aspects of the popular <cite>Lottery Ticket (LT) Hypothesis</cite> <span class="ref">[9]</span> and why it works. They present some intriguing results. I can't mention all of them in this section so I'll just talk about the most important ones. But before I do that, let's briefly recap LT so that we're on the same page.
+Before LT, the only thing we knew was that if you train a (big) network (typically with high weightage for L1 loss added to its loss function), you can prune it and get rid of a huge percentage of its parameters. You'd need to retrain/tune the pruned-network / sub-network a bit, but you won't lose any performance (accuracy). You will, as a result, get a small sub-network with a performance level similar to that of the bigger one. But if you try to train this small sub-network from scratch, its performance won't get anywhere close to that of the bigger network. Using LT algorithm, however, you can train the sub-network from scratch and still achieve similar performance. The trick is to initialise the sub-network with the exact same initial-values it had as part of the bigger original network. If you're training it on a big dataset like ImageNet, then you'd need to pick the values from epoch X (X=6 for ResNet-50 trained on ImageNet) as the initial values. Let's get back to the main paper now.
+</p>
+<p class="blog-post">
+When I refer to a sub-network or a pruned network, I'd mean the network obtained by training a network and removing some of its weights based on some criterion. The paper presents analyses for many criteria like:
+</p>
+<ul class="blog-post">
+  <li> Large weight values</li>
+  <li> Large weight values whose sign didn't change during training</li>
+  <li> A large increase in magnitude</li>
+  <li> etc.</li>
+</ul>
+<p class="blog-post">The things I found most striking in the paper are:</p>
+<ol class="blog-post">
+  <li>It's the signs (+/-) of the initial weights of the sub-network that matter and not the magnitude. You can even assign all the weights a constant value (while taking care of the signs of course) and still achieve performance comparable to that of the original bigger network! So the magic is not in parameters' initial VALUES but initial SIGNS. In section 1, we talked about how signs of the weights matter for backpropagation; now we see that they also matter while training a pruned network from scratch. Signs of the weights seem magical!</li>
+  <li>The other interesting thingy in the paper is what authors call "supermasks" ("mask" because one can define the architecture of a sub-network using a mask). They observed that the weights of the sub-network, when reverted to their initial values (not just signs), perform better than chance without any training! It doesn't end there. If you train the mask instead of training the network, you can obtain masks whose corresponding sub-networks perform almost as good as the original bigger network without any training. You should read section 5.1 of the paper if you're interested in how they train the mask instead of training the network.</li>
+</ol>
+<figure>
+  <img src="/assets/images/4 DL papers/supermasks_performance.jpg">
+  <figcaption>Fig 4. Comparision of Supermask performances in terms of test accuracy on MNIST and CIFAR10. Subfigures are across two network structures (top: FC on MNIST, bottom: Conv4 on CIFAR-10), as well as 1-action treatments (left: weights are at their original initialization, right: weights are converted to signed constants i.e. they all have the same magnitude but retain their original signs). No training is performed on any network. Within heuristic based Supermasks (excluding learned_mask), the large_final_same_sign mask creates the highest performing Supermask by a wide margin. Note that aside from the five independent runs performed to generate uncertainty bands for this plot, every point on this plot is from the same underlying network, just with different masks. Source: <span class="ref"> [8] </span></figcaption>
+</figure>
+<p class="blog-post">
+The supermasks, and especially training the masks to get supermasks, remind me of <cite>Weight agnostic neural networks</cite> <span class="ref">[10]</span>. The basic idea in that work is to perform a Neural Architecture Search (NAS) while keeping the weights same. Usually, one would train a network (or a part of it) while performing NAS to check if the current architecture is good or not but in this work, researchers skip "training of the weights" part. The architectures found with this approach perform well without any training of the weights. The initial values, just like in the case of supermarks, are good enough. However, the process of NAS is, of course, more complicated than finding supermasks.
+</p>
+<p class="blog-post">
+One major open question in <span class="ref">[8]</span> is whether all of this can generalise to other datasets like ImageNet, COCO etc. I hope this question gets answered in some follow-up work.
+</p>
+<h1 class="blog-post">Deep Image Prior</h1>
+<p class="blog-post">
+<cite>Ulyanov et al.</cite> in <span class="ref">[11]</span> try to prove that certain generator network architectures possess an inductive bias for images. They show that just the architecture of these networks is sufficient to capture patterns in images. They do so by performing denoising, superresolution, and inpainting tasks without training a network on a dataset.
+</p>
+<p class="blog-post">
+Their method is easy to understand. Let me explain it with the help of the denoising task. Denoising an image, as the name suggests, requires removing noise from a noisy image. What you do is provide a noisy image as an input to the network and "train" it to reproduce that noisy image. That's it! You "train" the network on that single image. I say "train" in quotes because training usually implies training the network on the whole dataset, not a single image. Here, backpropagation is performed on a randomly initialised network using only that one image you'd like to denoise. After some iterations, the network first produces (outputs) the image without noise, and as you perform more gradient steps, it eventually overfits and outputs the noisy input image. Fig 5 (from the IJCV version of the paper) below explains it using the trajectory of the parameters.
+</p>
+<figure>
+  <img class="md:w-2/3 lg:w-1/2" src="/assets/images/4 DL papers/DIP.jpg">
+  <figcaption>Fig 5. x<sub>0</sub> is the source/noisy image. It's also the target image for training the network. But the image we want to get, the one without noise, is the one at the point x<sub>gt</sub>. If you pick a random network and train it to produce x<sub>0</sub>, the network will follow the purple trajectory reaching x<sub>0</sub> but never getting close to x<sub>gt</sub>. If you add some regularisation to the loss, it'll follow the green trajectory. The green trajectory reaches closer to x<sub>gt</sub> than the purple one but is still very far away. If you use DIP, you'll eventually still arrive at x<sub>0</sub> but stopping early at t<sub>3</sub> would take you close to the desired point x<sub>gt</sub>. Source: <span class="ref"> [11] </span> but the IJCV version.</figcaption>
+</figure>
+<p class="blog-post">
+For superresolution, you'd ask it to produce a bigger image and then calculate the loss by downsampling the image. For the inpainting task, you'd ask the network to reproduce the image with some portion masked out. The authors note that the choice of architecture matters for the task at hand. If you read the paper, you'll get to see some fantastic results!
+</p>
+<p class="blog-post">
+There was a follow-up work from <cite>Gandelsman et al.</cite> <span class="ref">[12]</span> which extends the capabilities of this method even further. They show that you can perform Image-Dehazing, Foreground/Background Segmentation, Watermark-Removal, and Transparency Separation if you use two DIP (Deep Image Prior) networks instead of one. Images in these tasks have two components (foreground/background, watermark/original-image, etc.) which can be separated using two DIP networks. The basic idea is that if you train two DIP networks to reproduce the input image together by combining their outputs, the image produced by each DIP network would contain one of the two components of the image. The way you combine the two outputs is by producing a pixel-wise mask using a third DIP network and masking out some pixels from 1st output and other pixels from the 2<sup>nd</sup> output. Their results are also staggering!
+<figure>
+  <img class="md:w-2/3 lg:w-1/2" src="/assets/images/4 DL papers/double_DIP.jpg">
+  <figcaption>Fig 6. Double-DIP Framework. Two Deep-ImagePrior networks (DIP1 & DIP2) jointly decompose an input image <b>I</b> into its layers (y1 & y2). Mixing those layers back according to a learned mask <i>m</i>, reconstructs an image <b>Î</b>≈<b>I</b>. Source: <span class="ref"> [12] </span></figcaption>
+</figure>
+</p>
+<br/><br/>
+<ol class="blog-post" id="citations">
+  <li>Lillicrap TP, Cownden D, Tweed DB, Akerman CJ. Random feedback weights support learning in deep neural networks. arXiv preprint arXiv:1411.0247. 2014 Nov 2.</li>
+  <li>Nøkland A. Direct feedback alignment provides learning in deep neural networks. Advances in neural information processing systems. 2016;29:1037-45.</li>
+  <li>Xiao W, Chen H, Liao Q, Poggio T. Biologically-plausible learning algorithms can scale to large datasets. arXiv preprint arXiv:1811.03567. 2018 Nov 8.</li>
+  <li>Moskovitz TH, Litwin-Kumar A, Abbott LF. Feedback alignment in deep convolutional networks. arXiv preprint arXiv:1812.06488. 2018 Dec 12.</li>
+  <li>Liao Q, Leibo JZ, Poggio T. How important is weight symmetry in backpropagation?. arXiv preprint arXiv:1510.05067. 2015 Oct 17.</li>
+  <li>Sinha A, Sarkar M, Mukherjee A, Krishnamurthy B. Introspection: Accelerating neural network training by learning weight evolution. arXiv preprint arXiv:1704.04959. 2017 Apr 17.</li>
+  <li>Jaderberg M, Czarnecki WM, Osindero S, Vinyals O, Graves A, Silver D, Kavukcuoglu K. Decoupled neural interfaces using synthetic gradients. InInternational Conference on Machine Learning 2017 Jul 17 (pp. 1627-1635). PMLR.</li>
+  <li>Zhou H, Lan J, Liu R, Yosinski J. Deconstructing lottery tickets: Zeros, signs, and the supermask. InAdvances in Neural Information Processing Systems 2019 (pp. 3597-3607).</li>
+  <li>Frankle J, Carbin M. The lottery ticket hypothesis: Finding sparse, trainable neural networks. arXiv preprint arXiv:1803.03635. 2018 Mar 9.</li>
+  <li>Gaier A, Ha D. Weight agnostic neural networks. InAdvances in Neural Information Processing Systems 2019 (pp. 5364-5378).</li>
+  <li>Ulyanov D, Vedaldi A, Lempitsky V. Deep image prior. InProceedings of the IEEE Conference on Computer Vision and Pattern Recognition 2018 (pp. 9446-9454).</li>
+  <li>Gandelsman Y, Shocher A, Irani M. double-dip”: Unsupervised image decomposition via coupled deep-image-priors. InThe IEEE Conference on Computer Vision and Pattern Recognition (CVPR) 2019 Jun (Vol. 6, p. 2).</li>
+</ol>

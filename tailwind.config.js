@@ -15,7 +15,7 @@ module.exports = {
         'xs': 'x-small',
         'sm': 'small',
         'md': 'medium',
-        'lg': 'large',
+        'lg': '1.25rem',
         'xl': 'x-large',
         'xxl': 'xx-large'
       },

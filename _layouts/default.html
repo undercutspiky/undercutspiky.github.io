@@ -1,25 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="scroll-behavior: smooth;">
 <head>
     <link rel="stylesheet" href="{{ site.data.manifest['main.css'] }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@500&family=Nanum+Gothic+Coding&family=Oswald&family=Pathway+Gothic+One&family=Raleway&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400&family=Nanum+Gothic+Coding&family=Oswald&family=Pathway+Gothic+One&family=Raleway&display=swap" rel="stylesheet">
+    <title>{{ page.title }}</title>
 </head>
-<body class="m-0 pt-16 md:pt-20 lg:pt-24 xl:pt-32 bg-fixed bg-cover" style="box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.2); background-image: url('/assets/images/blurred_bg.jpg')">
+<!-- The top padding here should be aligned with the responsive heights of the nav-bar -->
+<body class="m-0 pt-16 md:pt-20 lg:pt-24 xl:pt-32 bg-fixed bg-cover min-h-screen" style="box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.2); background-image: url('/assets/images/blurred_bg.jpg')">
   <!--Navigation bar-->
-  <nav class="top-0 flex font-mono w-full block fixed items-center justify-center bg-black bg-opacity-50 h-12 md:h-16 lg:h-20 xl:h-24 z-50 shadow-xl" style="--bg-opacity: 0.8">
+  <nav class="top-0 flex font-mono w-full block fixed items-center justify-center bg-black bg-opacity-70 h-12 md:h-16 lg:h-20 xl:h-24 z-50 shadow-xl text-platinum no-underline text-xl lg:text-2xl xl:text-4xl" style="--bg-opacity: 0.8">
     <ul>
-      <li style="position: relative;" class="inline-block mr-4 sm:mr-16 text-platinum no-underline text-xl lg:text-2xl xl:text-3xl">
+      <li style="position: relative;" class="inline-block mr-4 sm:mr-16">
         <a href="{% link index.html %}" class="nav-bar">
           Home
         </a>
       </li>
-      <li style="position: relative;" class="inline-block mr-4 sm:mr-16 text-platinum no-underline text-xl lg:text-2xl xl:text-3xl">
+      <li style="position: relative;" class="inline-block mr-4 sm:mr-16">
         <a href="{% link blog.html %}" class="nav-bar">
           Blog
         </a>
       </li>
-      <li style="position: relative;" class="inline-block text-platinum no-underline text-xl lg:text-2xl xl:text-3xl">
+      <li style="position: relative;" class="inline-block">
         <a href="{% link about.html %}" class="nav-bar">
           About Me
         </a>
@@ -27,8 +29,7 @@
     </ul>
   </nav>
   <!--end of Navigation bar-->
-  <!-- The top margins below should be aligned with the responsive heights of the nav-bar -->
-  <div class="relative sm:ml-16 sm:mr-16 h-screen">
+  <div class="inline-block md:ml-8 lg:ml-16 md:mr-8 lg:mr-16">
   {{ content }}
   </div>
 </body>

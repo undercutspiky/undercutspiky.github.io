@@ -1,0 +1,20 @@
+---
+layout: default
+---
+<div class="bg-white bg-opacity-95 w-100 px-8 md:px-24 lg:px-36 py-4 md:py-14 font-epilogue text-lg text-justify text-gray-800 mb-8 leading-relaxed overflow-x-hidden">
+  {{ content }}
+</div>
+<script>
+  // Add IDs to citations (present at the bottom of a blog post) so that they can be linked to
+  var citations = document.getElementById("citations").getElementsByTagName("li");
+  for (var i = 0; i < citations.length; ++i) {
+    citations[i].setAttribute("id", "citation" + (i+1));
+  }
+  // Link all the references to the citations collected above and fill the data-text for tooltip
+  Array.from(document.getElementsByClassName("ref")).forEach(
+  function(elem, index, array){
+    citationNo = parseInt(elem.innerText.replace(/[\[\]']+/g,'')); // Remove brackets
+    elem.innerHTML = `<a href=#${"citation" + citationNo}>${elem.innerText}</a>`;
+    elem.setAttribute("data-text", citations[citationNo-1].innerText);
+  });
+</script>

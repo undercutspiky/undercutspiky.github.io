@@ -5,7 +5,7 @@ title: DJay's Blog
 ---
 <div class="flex flex-wrap justify-center">
   {% for post in site.posts %}
-    <div class="group flex relative lg:w-5/12 h-48 my-2 mx-1 shadow-lg">
+    <div class="group flex relative lg:w-5/12 h-48 my-2 mx-1 shadow-lg bg-white">
       <div class="absolute left-0 right-0 h-48 transition duration-300 ease-linear transform group-hover:scale-y-110 bg-white z-0"></div>
       <div class="w-1/3 overflow-hidden transition-all duration-300 ease-linear transform group-hover:-my-2.5">
         <img class="object-none w-full h-full transition delay-300 duration-4000 ease-linear transform group-hover:scale-150" src="{{ post.thumbnail }}" alt="Woman paying for a purchase">
@@ -17,7 +17,7 @@ title: DJay's Blog
         <p class="text-gray-600 hover:text-gray-800 text-md md:text-lg lg:text-md font-nanum-gothic line-clamp-3 text-justify">
           {{ post.subtitle }}
         </p>
-        <p class="font-oswald text-burnt_sienna text-md mt-2">Oct 30, 2020</p>
+        <p class="font-raleway text-burnt_sienna text-md mt-2">{{ post.date | date: '%b %d, %Y' }}</p>
       </div>
     </div>
   {% endfor %}
