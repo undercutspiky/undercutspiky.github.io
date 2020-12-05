@@ -117,12 +117,18 @@ For superresolution, you'd ask it to produce a bigger image and then calculate t
 </p>
 <p class="blog-post">
 There was a follow-up work from <cite>Gandelsman et al.</cite> <span class="ref">[12]</span> which extends the capabilities of this method even further. They show that you can perform Image-Dehazing, Foreground/Background Segmentation, Watermark-Removal, and Transparency Separation if you use two DIP (Deep Image Prior) networks instead of one. Images in these tasks have two components (foreground/background, watermark/original-image, etc.) which can be separated using two DIP networks. The basic idea is that if you train two DIP networks to reproduce the input image together by combining their outputs, the image produced by each DIP network would contain one of the two components of the image. The way you combine the two outputs is by producing a pixel-wise mask using a third DIP network and masking out some pixels from 1st output and other pixels from the 2<sup>nd</sup> output. Their results are also staggering!
+</p>
 <figure>
   <img class="md:w-2/3 lg:w-1/2" src="/assets/images/4 DL papers/double_DIP.jpg">
   <figcaption>Fig 6. Double-DIP Framework. Two Deep-ImagePrior networks (DIP1 & DIP2) jointly decompose an input image <b>I</b> into its layers (y1 & y2). Mixing those layers back according to a learned mask <i>m</i>, reconstructs an image <b>Î</b>≈<b>I</b>. Source: <span class="ref"> [12] </span></figcaption>
 </figure>
-</p>
-<br/><br/>
+<h1 class="blog-post">Key Takeaways</h1>
+<ul class="blog-post">
+  <li>The signs (+/-) of the parameters hold vital importance. They might be more critical than the magnitudes of the parameters.</li>
+  <li>The parameters of a network follow a predictable trajectory. This predictive nature of the parameters allows us to jump ahead in training.</li>
+  <li>Some architectures possess a strong inductive bias for images meaning that these architectures have some knowledge built into them.</li>
+</ul>
+<h1 class="blog-post">References</h1>
 <ol class="blog-post" id="citations">
   <li>Lillicrap TP, Cownden D, Tweed DB, Akerman CJ. Random feedback weights support learning in deep neural networks. arXiv preprint arXiv:1411.0247. 2014 Nov 2.</li>
   <li>Nøkland A. Direct feedback alignment provides learning in deep neural networks. Advances in neural information processing systems. 2016;29:1037-45.</li>
