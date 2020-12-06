@@ -3,12 +3,17 @@ defaults:
       path: ""
     values:
       layout: "default"
+      image: /assets/images/logo2.jpg
 
 exclude:
   - "*.config.js"
   - "package*.json"
   - "assets/index.css"
   - "node_modules"
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
 
 baseurl: /
 root: /
