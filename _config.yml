@@ -4,7 +4,13 @@ defaults:
     values:
       layout: "default"
       image: /assets/images/logo2.jpg
-
+ # SEO tag
+ # --------------------------------------------------------------------------------------------------------
+title: DJay's Website
+tagline: Lesser known things about Deep Learning
+description: DJay's website where he blogs on Deep Learning research usually covering lesser known papers.
+google_site_verification: S_PccxtRxhNIGDVb9-eV24f3Ru6BksYWTyXjgYkN75w
+# --------------------------------------------------------------------------------------------------------
 exclude:
   - "*.config.js"
   - "package*.json"
