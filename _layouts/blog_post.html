@@ -28,10 +28,10 @@ seo:
     elem.addEventListener('click', function(event) {
       current_y_location = window.pageYOffset;
       arrow = document.getElementById("up-arrow");
-      arrow.setAttribute("style", "display: block;");
+      arrow.classList.remove("hidden");
       arrow.addEventListener('click', function (event) {
             window.scrollTo(0, current_y_location);
-            arrow.setAttribute("style", "display: none;");
+            arrow.classList.add("hidden");
         });
     });
   });
