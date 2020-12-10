@@ -6,9 +6,9 @@ defaults:
       image: /assets/images/logo2.jpg
  # SEO tag
  # --------------------------------------------------------------------------------------------------------
-title: DJay's Website
+title: Dhananjay's Website
 tagline: Lesser known things about Deep Learning
-description: DJay's website where he blogs on Deep Learning research usually covering lesser known papers.
+description: Dhananjay blogs on Deep Learning research usually covering lesser known papers.
 google_site_verification: rd3Rph-oFTbtB79i_w__k7I1xIOCywth_XZJ8a-Gtk0
 # --------------------------------------------------------------------------------------------------------
 exclude:
