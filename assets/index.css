@@ -26,7 +26,12 @@ p.blog-post {
   @apply mb-2;
 }
 h1.blog-post {
-  @apply mb-6 mt-10 text-4xl font-raleway font-black text-black;
+  @apply mb-6 mt-10 text-3xl font-raleway font-black text-black;
+}
+@screen sm {
+  h1.blog-post {
+    @apply text-4xl;
+  }
 }
 ul.blog-post {
   list-style-type: "-";
