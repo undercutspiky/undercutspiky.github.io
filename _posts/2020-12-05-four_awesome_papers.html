@@ -21,13 +21,11 @@ Two things to note:
 <p class="blog-post">
 The basic idea of Feedback Alignment (FA) <span class="ref">[1]</span> is to use different matrices for the forward and backward pass of the backpropagation. Moreover, the matrices used for the backward pass are fixed and random. Let me elaborate. Recall how backpropagation works:
 </p>
-<p class="blog-post">
-  <ol class="blog-post">
-    <li> Propagate the input from the input layer to the output layer via hidden layers (forward pass).</li>
-    <li> Calculate the loss.</li>
-    <li> Propagate the error backwards from the output layer to the hidden layers (backward pass).</li>
-  </ol>
-</p>
+<ol class="blog-post">
+  <li> Propagate the input from the input layer to the output layer via hidden layers (forward pass).</li>
+  <li> Calculate the loss.</li>
+  <li> Propagate the error backwards from the output layer to the hidden layers (backward pass).</li>
+</ol>
 <p class="blog-post">
 The matrices used for propagation in step 1 and step 3 are the same - the weights of the model. In step 3, once you have the error at layer<sub>i</sub>, you multiply it with the layer's parameters to get the error for the layer<sub>i-1</sub> (ignoring details like propagating error through the activation function). But one could say that steps 1 and 3 have two different matrices which happen to be identical and remain identical throughout the training. What FA does is introduce new random matrices for step 3 and keep them fixed throughout the training. So you calculate the loss at the output layer and randomly project it back to the hidden layers to train the network. And this works! It's surprising because the parameters of the network receive some random projection of the loss, and they somehow learn to make use of it. For this, they need to change in a way that the randomly projected loss makes sense for them and propels them towards values which solve the training task at hand. You probably also understand the name "Feedback Alignment" now. The parameters learn to "align" with the "feedback" received via fixed random matrices.
 </p>

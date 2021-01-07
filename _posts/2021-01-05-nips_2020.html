@@ -1,0 +1,131 @@
+---
+layout: blog_post
+title: My favourite NeurIPS 2020 picks
+image: /assets/images/neurips2020.jpg
+description: Summaries of some NeurIPS 2020 papers that intrigued me.
+---
+<style>
+  h2.blog-post{color: #a55757;}
+</style>
+<p class="blog-post">
+In this post, I'll succinctly present the main idea or the main results of a handful of NeurIPS 2020 papers. These papers are not the best or most important ones, but rather the ones I found interesting. There are some topics like Reinforcement Learning, GANs, Graph NNs etc. that I'm not much (or not at all) into so you won't find anything on them here.
+</p>
+<h2 class="blog-post">The Origins and Prevalence of Texture Bias in Convolutional Neural Networks <span class="ref">[1]</span></h2>
+<p class="blog-post">
+This paper sheds some light on the Neural Networks' propensity to sometimes learn texture <span class="ref">[9]</span> instead of shape. The shape is what humans use to classify an object. The paper first presents some experiments which show that CNNs can learn to use the shape for classification at least as easily they learn to use texture, i.e. CNNs are not inherently biased towards learning texture. Rest of the paper is about what helps or does not help bias CNNs towards shape than texture:
+</p>
+<ul class="blog-post">
+  <li> <i>Random-crop</i> data augmentation increases texture bias. <i>Centre-crop</i> is better than random-crop for avoiding texture-bias. However, it's not clear to me (from the paper) whether <i>centre-crop</i> is better than <i>no-crop</i> or not.</li>
+  <li> Simple data augmentations like colour distortion, Gaussian blur, and Gaussian noise can reduce texture-bias. Using centre-crop in combination with these reduces texture-bias even further.</li>
+  <li> Rotating the images by multiples of 90 degrees and training the network to predict the rotation angle reduces texture-bias. This objective, however, does not help as much as data augmentation does.</li>
+  <li> Models with high top-1 accuracy on ImageNet have higher shape bias, but the relationship is not symmetric, i.e. models with higher shape bias do not necessarily have higher top-1 accuracy.</li>
+  <li> Biologically motivated architectures do not have greater shape bias.</li>
+  <li> Replacing convolutional layers with local attention does not reduce texture bias.</li>
+</ul>
+<p class="blog-post">
+The authors also found that while networks might use texture information to classify images, they still have information about shape in their layers. They just tend to not make use of it more than the texture information.
+</p>
+
+<h2 class="blog-post">Do Adversarially Robust ImageNet Models Transfer Better? <span class="ref">[2]</span></h2>
+<p class="blog-post">
+This paper is about...well what the title suggests. This work basically shows that the models trained to be adversarially robust lead to better performance on the transferred dataset. So, if you want to a train a network on ImageNet and then use those weights for improving performance on another dataset like CIFAR, you'd be better off training the model on <i>ImageNet + adversarial samples generated during training</i> than just <i>ImageNet</i>. The difference in performance is especially pronounced when you don't fine-tune the pre-trained network but train a linear classifier on top of features extracted from the network.  Some other points from the paper:
+</p>
+<ul class="blog-post">
+  <li> It is known that higher accuracy leads to better transfer performance, but it is also known that robustness hurts accuracy, so why can robustness help transfer performance! It turns out that they both increase transfer performance in their own different ways. The paper empirically proves it by showing that for a fixed level of <i>accuracy</i>, increasing <i>robustness</i> improves transfer performance and for a fixed level of <i>robustness</i>, increasing <i>accuracy</i> improves transfer performance.</li>
+  <li>Previous work had shown that increasing depth improves transfer performance and increasing width hurts it. In their limited exploration of architectures, the authors found that robust models behave differently. Robust networks' transfer performance improves with an increase in width. They do not mention the effects of depth in the paper.</li>
+  <li>Different datasets require different levels of robustness. So, treat the level robustness as a hyperparameter dependent on the dataset.</li>
+</ul>
+
+<h2 class="blog-post">Pre-training via paraphrasing <span class="ref">[3]</span></h2>
+<p class="blog-post">
+This work introduces a new pre-training method for NLP models. The idea is to collect a bunch of "documents", some of which should be related to each other, and then train a sequence to sequence model to reconstruct the input document conditioned other related documents in the batch. Authors define a document as contiguous chunks of text up to a maximum length. I found the idea to be similar to that of back-translation (maybe I'll write a post about back-translation) where the model tries to produce the input text conditioned on the text's translation. The idea can be described as follows:
+</p>
+<ol class="blog-post">
+  <li>Create a batch with two disjoint sets of documents: a) target documents and b) evidence documents. Each target document should have a few evidence documents in the batch. One can start with random batches, but as the model for similarity/relevance score (next point below) improves, the batches should be constructed based on relevance scores.</li>
+  <li>Compute the cosine similarity between every pair of target and evidence documents, after embedding the documents to a vector. Each pair comprises of one target document and one evidence document.</li>
+  <li>Reconstruct each document conditioned on similarity scores and the evidence documents.</li>
+</ol>
+<p class="blog-post">
+The model in the paper is trained on Wikipedia articles and CC-NEWS corpus. The model is gigantic, having 963M parameters and was trained for 4700 GPU days!
+</p>
+<p class="blog-post">
+I wonder if a reasonably sized model would have a reasonable performance when trained with reasonable resources - both in terms of computational power and data. I think the method is not as generic as Language Modelling. Your data needs to have text snippets where most (or all? I don't know) of the snippets should have related snippets in the dataset. The model needs to reconstruct the text snippet from other related text snippets, so they better be well related. But I hope we can overcome all the limitations in time.
+</p>
+
+<h2 class="blog-post">Curriculum Learning by Dynamic Instance Hardness <span class="ref">[4]</span></h2>
+<p class="blog-post">
+  This one's interesting for me because Curriculum Learning was my Master's thesis topic. This work tries to solve the problem of finding a curriculum using something they refer to as Dynamic Instance Hardness (DIH). Authors define DIH of a sample as the exponential moving average of an instantaneous hardness measure of a sample over time. The Instantaneous Hardness of a sample is simply the measure of the hardness of the sample. The hardness of a sample may vary during training, and that's why the word "instantaneous" is used to imply that it's the hardness at a particular instance (time step). This work uses three measures of instantaneous hardness: a) the loss of a sample at a given timestamp, b) the change in loss between two consecutive time steps, and c) the prediction flip (0 or 1 indicating whether the network predicted the label same as last time or not).
+</p>
+<p class="blog-post">
+Authors found that the relative difficulty of a sample, measured using DIH, remains the same after the initial phase (40 epochs in this work) of the training. The network also doesn't forget the easy samples later in training, which means that they can be visited less frequently than the hard ones. They then propose a curriculum strategy to initially start training the network on a large number of samples and reduce the number of samples used over time. When it's time to reduce the samples in training, samples are weighted according to their DIH values, and then a sampling strategy is used to get a desired number of samples. Authors propose three sampling strategies in which they also try to trade-off exploration and exploitation. Exploring here means that the sampling algorithm won't necessarily pick the more challenging samples. Exploration is especially required when DIH values are not well estimated. The results in the paper look pretty good. The curriculum strategy reduces the training time significantly (compared to a random curriculum) while maintaining (and sometimes improving) the accuracies for many image classification datasets.
+</p>
+
+<h2 class="blog-post">Language Through a Prism: A Spectral Approach for Multiscale Language Representations <span class="ref">[5]</span></h2>
+<p class="blog-post">
+Language has structural hierarchies: words, phrases, sentences, paragraphs, and so on. While we expect NNs to capture different hierarchies implicitly, it's many a time beneficial to be more explicit. There have been papers that achieve this using different time scales (check the references in the paper). This work achieves it in a very novel way. Here, different hierarchies are captured "horizontally" rather than "vertically" (in different layers) using Discrete Cosine Transform (DCT). By "horizontally" I mean that the final layer neurons are divied into multiple groups, each representing a different hierarchy. Ain't that cool!
+</p>
+<p class="blog-post">
+The main idea is to filter the representations of tokens in the frequency domain in the following way:
+</p>
+<ol class="blog-post">
+  <li>Embed each token to a vector. This work uses BERT to create contextual word representations/vectors/embeddings (whatever you wanna call it) of size m. For n words, you'll get n vectors v<sub>0...n</sub>.</li>
+  <li>For each vector v<sub>i</sub>[0...m], take v<sub>i</sub>[j]. v<sub>0</sub>[j]...v<sub>n</sub>[j] then represent a time-series along a particular dimension of the embeddings.</li>
+  <li>Transform this series to the frequency domain using DCT.</li>
+  <li>Apply low-pass, high-pass or band-pass filtering.</li>
+  <li>Convert it back to the original domain using Inverse DCT.</li>
+  <li>Repeat steps 2 to 5 for all the values of j from 0 to m.</li>
+</ol>
+<p class="blog-post">
+The authors conduct some probing experiments to prove that filtering in the frequency domain can indeed result in different hierarchies. They take a pre-trained BERT model, stack up the 768-dimensional embeddings (of the final layer) of each word and apply filtering along each of the 768 dimensions as described above. Then a probing model is trained on these filtered embeddings to perform a particular task. Authors find that tasks requiring word-level information (lower hierarchy) get best results with a low-pass filter, those requiring higher-level hierarchies with a high-pass filter and so on.
+</p>
+<p class="blog-post">
+One can create a layer out of the filtering methodology described in the main idea and the probing experiment above. Authors call this layer "prism layer". Neurons in the final layer of the network are grouped. Prism layer then filters each group using a different frequency band. This leads to the network capturing different hierarchies in these different groups and results in much higher accuracies for some tasks. The authors also experiment with placing the prism layer after every single layer in BERT, finding it less beneficial.
+</p>
+
+<h2 class="blog-post">Direct Feedback Alignment Scales to Modern Deep Learning Tasks and Architectures <span class="ref">[6]</span></h2>
+<p class="blog-post">
+I talked about Feedback Alignment (FA) and Direct FA (DFA) in my <a href="{% post_url 2020-12-05-four_awesome_papers %}" class="underline">previous post</a>. I'd recommend quickly going through that section if you are not familiar with FA/DFA. Earlier works on FA/DFA had mainly focused on image data and/or training CNNs. They had found FA/DFA to not work very well with CNNs without some modifications to the training algorithm. This work shows that DFA is not as useless as it may seem from other papers, it does indeed work, but you gotta try it on a broad range of problems. The authors achieve fairly good results on various problems:
+</p>
+<ul class="blog-post">
+  <li>Neural view synthesis with Neural Radiance Fields (NeRF). NeRF is the current SOTA method for generating scenes. It uses fully connected networks.</li>
+  <li>Click-through rate prediction with recommender systems. Here they compare Factorisation Machines + Fully Connected Networks trained using backpropagation vs DFA.</li>
+  <li>Geometric Learning with Graph Convolutional Networks (GCNNs). While DFA might fail to train CNNs on 2D images, it works pretty well on GCNNs for graph problems which have recently gained a lot of interest.</li>
+  <li>Language Modelling with Transformers. Here, the difference between backpropagation and DFA is quite significant, but DFA is still learns something. Also, training transformers still required using backpropagation a little bit within a block for training the attention matrices.</li>
+</ul>
+<p class="blog-post">
+All in all, it shows that DFA seems to be a promising approach to many problems. It would, however, require effort from multiple research groups to make it work.
+</p>
+
+<h2 class="blog-post">Measuring Robustness to Natural Distribution Shifts in Image Classification <span class="ref">[7]</span></h2>
+<p class="blog-post">
+This work provides a HUGE study of the effect of various image augmentation techniques on model's robustness against natural distortions. When trying to make a model robust, we augment our data with things like random crops, noise addition, colour distortion and so on. We assume that the addition of such synthetic distribution shifts would make our model robust against the naturally occurring shifts like different lighting conditions, camera quality, scene composition, and many other things. This work tests this hypothesis on an enormous scale for ImageNet and concludes that these synthetic shifts usually do not make the model robust against natural shifts. What does sometimes help is, making the dataset more diverse.
+</p>
+<p class="blog-post">
+But how can you find datasets which have natural shifts instead of a synthetic one? Authors use 3 different kinds of datasets which they claim have natural distribution shifts due to the way they were constructed:
+</p>
+<ul class="blog-post">
+  <li>Different frames from a video clip. The authors collected contiguous video frames which humans find very similar to each other but misclassified by neural networks.</li>
+  <li>Datasets which have overlapping classes with ImageNet.</li>
+  <li>An adversarially collected dataset "ImageNet-A". This dataset was created (not by the authors of this paper) by collecting a large number of images from various websites and then selecting the subset which was misclassified a ResNet-50 model.</li>
+</ul>
+<p class="blog-post">
+The authors test the effects of various synthetic shifts on 204 different ImageNet models! Hundreds of settings and hundreds of models are what make the study really large. I'd encourage you to read the paper to see how synthetic shifts do not help make the model robust against natural shifts. And how adding a hell lot more data helps but not too much. The authors conclude the problem of making the model robust against natural shifts remains mostly unsolved.
+</p>
+
+<h2 class="blog-post">Identifying Mislabeled Data using the Area Under the Margin Ranking <span class="ref">[8]</span></h2>
+<p class="blog-post">
+This work proposes a new method for identifying mislabeled samples in a dataset. The method's main idea is to look at the difference between the final layer logit values of the dataset label and the label with the highest logit value. If the label of an image in the dataset is "dog" and the network assigns the highest logit value to "cat" in the final layer then look at the difference between the "dog" logit and the "cat" logit. This difference then needs to be averaged over the epochs. Authors refer to this averaged difference as Area Under Margin (AUM). The label is likely to be correct is AUM is large and incorrect if it's small. Over time the network will, of course, overfit and produce a high logit value for all the samples in the dataset. Therefore it's essential to classify the mislabeled samples earlier in training. The authors do it right before they drop the learning rate for the first time. Also, the AUM threshold for classifying a sample is mislabeled will differ from dataset to dataset. To find the threshold for a dataset, assign a new fake label to a subset of images in the dataset, calculate AUM for those images and then use the 99<sup>th</sup> percentile AUM of the mislabeled images as the threshold. The results on various datasets seem pretty good. I think we (actually some students in our team whom I supervise) will try this method for our dataset. Since we're doing semantic segmentation, we would need to modify the proposed method.
+</p>
+
+<h1 class="blog-post">References</h1>
+<ol class="blog-post" id="citations">
+  <li>Hermann K, Chen T, Kornblith S. The origins and prevalence of texture bias in convolutional neural networks. Advances in Neural Information Processing Systems. 2020;33.</li>
+  <li>Salman H, Ilyas A, Engstrom L, Kapoor A, Madry A. Do adversarially robust imagenet models transfer better?. arXiv preprint arXiv:2007.08489. 2020 Jul 16.</li>
+  <li>Lewis M, Ghazvininejad M, Ghosh G, Aghajanyan A, Wang S, Zettlemoyer L. Pre-training via Paraphrasing. Advances in Neural Information Processing Systems. 2020;33.</li>
+  <li>Zhou T, Wang S, Bilmes JA. Curriculum Learning by Dynamic Instance Hardness. Advances in Neural Information Processing Systems. 2020;33.</li>
+  <li>Tamkin A, Jurafsky D, Goodman N. Language Through a Prism: A Spectral Approach for Multiscale Language Representations. Advances in Neural Information Processing Systems. 2020;33.</li>
+  <li>Launay J, Poli I, Boniface F, Krzakala F. Direct feedback alignment scales to modern deep learning tasks and architectures. Advances in Neural Information Processing Systems. 2020;33.</li>
+  <li>Taori R, Dave A, Shankar V, Carlini N, Recht B, Schmidt L. Measuring robustness to natural distribution shifts in image classification. Advances in Neural Information Processing Systems. 2020;33.</li>
+  <li>Pleiss G, Zhang T, Elenberg ER, Weinberger KQ. Identifying Mislabeled Data using the Area Under the Margin Ranking. arXiv preprint arXiv:2001.10528. 2020 Jan 28.</li>
+  <li>Geirhos R, Rubisch P, Michaelis C, Bethge M, Wichmann FA, Brendel W. ImageNet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness. arXiv preprint arXiv:1811.12231. 2018 Nov 29.</li>
+</ol>
