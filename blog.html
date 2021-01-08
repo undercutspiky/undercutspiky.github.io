@@ -6,7 +6,7 @@ image: /assets/images/logo2.jpg
 ---
 <main class="flex flex-wrap justify-center text-justify">
   {% for post in site.posts %}
-    <article class="group flex relative lg:w-5/12 h-48 my-2 mx-1 shadow-lg bg-white">
+    <article class="group flex relative min-w-full lg:min-w-0 lg:w-5/12 h-48 my-2 mx-1 shadow-lg bg-white">
       <div class="absolute left-0 right-0 h-48 transition duration-300 ease-linear transform group-hover:scale-y-110 bg-white z-0"></div>
       <div class="w-1/3 overflow-hidden transition-all duration-300 ease-linear transform group-hover:-my-2.5">
         <img class="object-none w-full h-full transition delay-300 duration-4000 ease-linear transform group-hover:scale-150" src="{{ post.image }}">
