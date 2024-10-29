@@ -5,7 +5,7 @@
     "@neojp/tailwindcss-line-clamp-utilities": "^1.0.1",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^3.6.0",
-    "cssnano": "^4.1.10",
+    "cssnano": "^5.1.13",
     "mini-css-extract-plugin": "^0.9.0",
     "postcss-loader": "^3.0.0",
     "postcss-nested": "^4.2.2",
