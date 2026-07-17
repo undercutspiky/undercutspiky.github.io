@@ -1,7 +1,6 @@
-import { spawn } from 'node:child_process';
+import http from 'node:http';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import process from 'node:process';
 import { chromium } from 'playwright';
 
 const repoRoot = '/home/runner/work/undercutspiky.github.io/undercutspiky.github.io';
@@ -11,33 +10,82 @@ const baseUrl = 'http://127.0.0.1:4173';
 const widths = [320, 390, 768, 1440];
 const pages = ['/', '/research', '/blog', '/about'];
 
+async function exists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function contentType(filePath) {
+  if (filePath.endsWith('.html')) return 'text/html; charset=utf-8';
+  if (filePath.endsWith('.css')) return 'text/css; charset=utf-8';
+  if (filePath.endsWith('.js')) return 'text/javascript; charset=utf-8';
+  if (filePath.endsWith('.svg')) return 'image/svg+xml';
+  if (filePath.endsWith('.png')) return 'image/png';
+  if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) return 'image/jpeg';
+  if (filePath.endsWith('.webp')) return 'image/webp';
+  if (filePath.endsWith('.ico')) return 'image/x-icon';
+  if (filePath.endsWith('.xml')) return 'application/xml; charset=utf-8';
+  return 'application/octet-stream';
+}
+
+async function resolvePath(requestPath) {
+  const cleanPath = decodeURIComponent(requestPath.split('?')[0]);
+  const relativePath = cleanPath.replace(/^\//, '');
+  const directPath = path.join(siteRoot, relativePath);
+
+  if (cleanPath.endsWith('/')) {
+    const indexPath = path.join(directPath, 'index.html');
+    if (await exists(indexPath)) return indexPath;
+  }
+
+  if (await exists(directPath)) {
+    const stat = await fs.stat(directPath);
+    if (stat.isFile()) return directPath;
+    const indexPath = path.join(directPath, 'index.html');
+    if (await exists(indexPath)) return indexPath;
+  }
+
+  if (!path.extname(relativePath)) {
+    const htmlPath = `${directPath}.html`;
+    if (await exists(htmlPath)) return htmlPath;
+  }
+
+  return null;
+}
+
+function startServer() {
+  const server = http.createServer(async (req, res) => {
+    try {
+      const filePath = await resolvePath(req.url || '/');
+      if (!filePath) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Not found');
+        return;
+      }
+
+      const buffer = await fs.readFile(filePath);
+      res.writeHead(200, { 'Content-Type': contentType(filePath) });
+      res.end(buffer);
+    } catch {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Server error');
+    }
+  });
+
+  return new Promise((resolve) => {
+    server.listen(4173, '127.0.0.1', () => resolve(server));
+  });
+}
+
 async function findGeneratedPage(dirPath) {
   const entries = await fs.readdir(dirPath, { withFileTypes: true });
   const dirs = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
   if (dirs.length === 0) throw new Error(`No directories found under ${dirPath}`);
   return dirs[0];
-}
-
-function startServer() {
-  const server = spawn('python3', ['-m', 'http.server', '4173'], {
-    cwd: siteRoot,
-    stdio: 'ignore'
-  });
-  return server;
-}
-
-async function waitForServer(url, timeoutMs = 15000) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) return;
-    } catch (_) {
-      // ignore until server starts
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error('Timed out waiting for local preview server');
 }
 
 function assert(condition, message) {
@@ -58,7 +106,7 @@ async function testOverflow(page, route, width) {
     `Horizontal overflow on ${route} at ${width}px (scrollWidth=${result.scrollWidth}, innerWidth=${result.innerWidth})`
   );
 
-  const slug = route === '/' ? 'home' : route.replace(/^\//, '').replace(/\//g, '_');
+  const slug = route === '/' ? 'home' : route.replace(/^\//, '').replace(/\//g, '_').replace(/\.html$/, '');
   await page.screenshot({
     path: path.join(screenshotRoot, `${slug}-${width}.png`),
     fullPage: true
@@ -93,7 +141,7 @@ async function testMobileNav(page) {
   for (const target of linkTargets) {
     await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
     await toggle.click();
-    await page.getByRole('link', { name: target.text }).click();
+    await page.locator('#primary-nav .nav-link', { hasText: target.text }).click();
     await page.waitForURL(`${baseUrl}${target.route}`);
     const expanded = await page.locator('.nav-toggle').getAttribute('aria-expanded');
     assert(expanded === 'false', `Mobile menu did not close after selecting ${target.text}`);
@@ -130,10 +178,8 @@ async function main() {
   pages.push(`/research/${generatedResearch}/`);
   pages.push(generatedPost);
 
-  const server = startServer();
+  const server = await startServer();
   try {
-    await waitForServer(baseUrl);
-
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
 
@@ -149,7 +195,7 @@ async function main() {
     await browser.close();
     console.log(`Responsive checks passed. Screenshots saved to ${screenshotRoot}`);
   } finally {
-    server.kill('SIGTERM');
+    await new Promise((resolve) => server.close(resolve));
   }
 }
 
