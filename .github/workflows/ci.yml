@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# Only run one CI job per branch/PR at a time.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Node / CSS ──────────────────────────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build CSS (production)
+        run: npm run build
+
+      - name: Verify generated CSS exists
+        run: |
+          test -f assets/css/site.css || { echo "ERROR: assets/css/site.css not found"; exit 1; }
+          echo "CSS size: $(wc -c < assets/css/site.css) bytes"
+
+      # ── Ruby / Jekyll ───────────────────────────────────────────────────────
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true   # runs 'bundle install' and caches automatically
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --strict_front_matter
+        env:
+          JEKYLL_ENV: production
+
+      - name: Verify key output pages exist
+        run: |
+          test -f _site/index.html     || { echo "Missing index.html";     exit 1; }
+          test -f _site/blog.html      || { echo "Missing blog.html";       exit 1; }
+          test -f _site/about.html     || { echo "Missing about.html";      exit 1; }
+          test -f _site/research.html  || { echo "Missing research.html";   exit 1; }
+          echo "All expected pages present."

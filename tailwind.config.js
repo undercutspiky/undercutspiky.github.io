@@ -1,5 +1,12 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  purge: [],
+  content: [
+    './_layouts/**/*.html',
+    './_includes/**/*.html',
+    './_posts/**/*.html',
+    './_research/**/*.md',
+    './*.html',
+  ],
   theme: {
     extend: {
       colors: {
@@ -46,27 +53,17 @@ module.exports = {
         'height': 'height',
         'spacing': 'margin, padding',
       },
-      fontFamily:{
+      fontFamily: {
         'pathway-gothic': ['"Pathway Gothic One"', 'sans-serif'],
         'nanum-gothic': ['"Nanum Gothic Coding"', 'monospace'],
         'epilogue': ['Epilogue', 'sans-serif'],
         'oswald': ['Oswald', 'sans-serif'],
         'raleway': ['Raleway', 'sans-serif'],
       },
-      margin:{
+      margin: {
         '-2.5': '-0.625rem'
       }
     }
   },
-  variants: {
-    transitionProperty: ['responsive', 'hover', 'focus', 'group-hover'],
-    transitionDuration: ['responsive', 'hover', 'focus', 'group-hover'],
-    transitionDelay: ['responsive', 'hover', 'focus', 'group-hover'],
-    transitionTimingFunction: ['responsive', 'hover', 'focus', 'group-hover'],
-    lineClamp: ['responsive'],
-    scale: ['responsive', 'hover', 'focus', 'group-hover'],
-    height: ['responsive', 'hover', 'focus', 'group-hover'],
-    margin: ['responsive', 'hover', 'focus', 'group-hover'],
-  },
-  plugins: [require('@neojp/tailwindcss-line-clamp-utilities')],
+  plugins: [],
 }

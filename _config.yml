@@ -11,11 +11,19 @@ tagline: Lesser known things about Deep Learning
 description: Dhananjay blogs on Deep Learning research usually covering lesser known papers.
 google_site_verification: rd3Rph-oFTbtB79i_w__k7I1xIOCywth_XZJ8a-Gtk0
 # --------------------------------------------------------------------------------------------------------
+collections:
+  research:
+    output: true
+    permalink: /research/:slug/
+
 exclude:
-  - "*.config.js"
+  - "tailwind.config.js"
   - "package*.json"
+  - "package-lock.json"
   - "assets/index.css"
   - "node_modules"
+  - "Gemfile"
+  - "Gemfile.lock"
 
 plugins:
   - jekyll-seo-tag

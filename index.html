@@ -16,8 +16,46 @@ image: /assets/images/logo2.jpg
   </div>
 </section>
 
+{% assign featured_research = site.research | where: "featured", true | sort: "date" | reverse %}
+{% if featured_research.size > 0 %}
+<section class="featured-research" aria-labelledby="featured-research-heading">
+  <h2 class="section-heading" id="featured-research-heading">Featured Research</h2>
+  <div class="research-featured-grid">
+    {% for item in featured_research limit:2 %}
+    <article class="research-featured-card">
+      {% if item.image %}
+      <a href="{{ item.url | relative_url }}" class="research-featured-card-img-wrap" tabindex="-1" aria-hidden="true">
+        <img src="{{ item.image }}" alt="{{ item.image_alt | default: '' }}" loading="lazy">
+      </a>
+      {% endif %}
+      <div class="research-featured-card-body">
+        <div class="research-featured-card-meta">
+          {% if item.status %}
+          {% assign badge_class = "research-badge-project" %}
+          {% if item.status == "Published" %}{% assign badge_class = "research-badge-published" %}
+          {% elsif item.status == "Preprint" %}{% assign badge_class = "research-badge-preprint" %}
+          {% elsif item.status == "Ongoing" %}{% assign badge_class = "research-badge-ongoing" %}
+          {% endif %}
+          <span class="research-badge {{ badge_class }}">{{ item.status }}</span>
+          {% endif %}
+          {% if item.venue %}<span class="research-card-venue">{{ item.venue }}</span>{% endif %}
+        </div>
+        <h3 class="research-featured-card-title">
+          <a href="{{ item.url | relative_url }}" class="research-featured-card-title-link">{{ item.title }}</a>
+        </h3>
+        {% if item.summary %}
+        <p class="research-featured-card-summary">{{ item.summary }}</p>
+        {% endif %}
+        <a href="{{ item.url | relative_url }}" class="research-featured-card-read">View project &rarr;</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="latest-posts" aria-labelledby="latest-heading">
-  <h2 class="section-heading" id="latest-heading">Latest Posts</h2>
+  <h2 class="section-heading" id="latest-heading">Latest Writing</h2>
   <div class="post-grid">
     {% for post in site.posts limit:3 %}
     <article class="post-card">
