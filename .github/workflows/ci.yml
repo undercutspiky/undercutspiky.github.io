@@ -18,16 +18,19 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ── Node / CSS ──────────────────────────────────────────────────────────
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install Node dependencies
         run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Build CSS (production)
         run: npm run build
@@ -55,3 +58,16 @@ jobs:
           test -f _site/about.html     || { echo "Missing about.html";      exit 1; }
           test -f _site/research.html  || { echo "Missing research.html";   exit 1; }
           echo "All expected pages present."
+
+      - name: Run responsive checks
+        run: node ./scripts/responsive-check.mjs
+        env:
+          RESPONSIVE_SCREENSHOT_DIR: ${{ runner.temp }}/responsive-check
+
+      - name: Upload responsive failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: responsive-check-artifacts
+          path: ${{ runner.temp }}/responsive-check
+          if-no-files-found: ignore

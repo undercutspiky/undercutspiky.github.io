@@ -1,14 +1,15 @@
 import http from 'node:http';
 import { promises as fs } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const repoRoot = '/home/runner/work/undercutspiky.github.io/undercutspiky.github.io';
+const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const siteRoot = path.join(repoRoot, '_site');
-const screenshotRoot = '/tmp/responsive-after';
-const baseUrl = 'http://127.0.0.1:4173';
+const screenshotRoot = process.env.RESPONSIVE_SCREENSHOT_DIR || path.join(os.tmpdir(), 'responsive-check');
 const widths = [320, 390, 768, 1440];
-const pages = ['/', '/research', '/blog', '/about'];
+const baseRoutes = ['/', '/research', '/blog', '/about'];
 
 async function exists(filePath) {
   try {
@@ -76,8 +77,16 @@ function startServer() {
     }
   });
 
-  return new Promise((resolve) => {
-    server.listen(4173, '127.0.0.1', () => resolve(server));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => resolve(server));
+  });
+}
+
+function closeServer(server) {
+  if (!server?.listening) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    server.close((error) => (error ? reject(error) : resolve()));
   });
 }
 
@@ -92,7 +101,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-async function testOverflow(page, route, width) {
+async function testOverflow(page, baseUrl, route, width) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
 
@@ -113,7 +122,7 @@ async function testOverflow(page, route, width) {
   });
 }
 
-async function testMobileNav(page) {
+async function testMobileNav(page, baseUrl) {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
 
@@ -148,7 +157,7 @@ async function testMobileNav(page) {
   }
 }
 
-async function testDesktopNav(page) {
+async function testDesktopNav(page, baseUrl) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
   const desktopVisible = await page.locator('.nav-links').isVisible();
@@ -175,27 +184,32 @@ async function main() {
   assert(postCandidates.length > 0, 'No generated blog posts found');
 
   const generatedPost = `/${years[0]}/${months}/${days}/${postCandidates[0]}`;
-  pages.push(`/research/${generatedResearch}/`);
-  pages.push(generatedPost);
+  const routes = [...baseRoutes, `/research/${generatedResearch}/`, generatedPost];
 
-  const server = await startServer();
+  let server;
+  let browser;
   try {
-    const browser = await chromium.launch({ headless: true });
+    server = await startServer();
+    const address = server.address();
+    assert(address && typeof address === 'object', 'Could not determine responsive test server address');
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
 
-    for (const route of pages) {
+    for (const route of routes) {
       for (const width of widths) {
-        await testOverflow(page, route, width);
+        await testOverflow(page, baseUrl, route, width);
       }
     }
 
-    await testMobileNav(page);
-    await testDesktopNav(page);
+    await testMobileNav(page, baseUrl);
+    await testDesktopNav(page, baseUrl);
 
-    await browser.close();
     console.log(`Responsive checks passed. Screenshots saved to ${screenshotRoot}`);
   } finally {
-    await new Promise((resolve) => server.close(resolve));
+    await browser?.close();
+    await closeServer(server);
   }
 }
 
