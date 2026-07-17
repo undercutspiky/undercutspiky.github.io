@@ -37,7 +37,10 @@
       <a href="{% link index.html %}" class="nav-logo" aria-label="Dhananjay's Website — home">
         <span class="nav-logo-bracket">[</span>djay<span class="nav-logo-dot">.</span>lab<span class="nav-logo-bracket">]</span>
       </a>
-      <ul class="nav-links" role="list">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+        Menu
+      </button>
+      <ul class="nav-links" id="primary-nav" role="list">
         <li><a href="{% link index.html %}" class="nav-link">Home</a></li>
         <li><a href="{% link research.html %}" class="nav-link">Research</a></li>
         <li><a href="{% link blog.html %}" class="nav-link">Blog</a></li>
@@ -56,5 +59,56 @@
       &copy; {{ 'now' | date: '%Y' }} Dhananjay Tomar &mdash; Deep Learning Research Notebook
     </p>
   </footer>
+  <script>
+    (function () {
+      var nav = document.querySelector('.site-nav');
+      if (!nav) return;
+      var button = nav.querySelector('.nav-toggle');
+      var links = nav.querySelector('#primary-nav');
+      if (!button || !links) return;
+
+      var mobileBreakpoint = 768;
+      document.documentElement.classList.add('js-nav');
+
+      function closeMenu() {
+        nav.classList.remove('menu-open');
+        button.setAttribute('aria-expanded', 'false');
+      }
+
+      function openMenu() {
+        nav.classList.add('menu-open');
+        button.setAttribute('aria-expanded', 'true');
+      }
+
+      function isMenuOpen() {
+        return nav.classList.contains('menu-open');
+      }
+
+      button.addEventListener('click', function () {
+        if (isMenuOpen()) closeMenu();
+        else openMenu();
+      });
+
+      links.addEventListener('click', function (event) {
+        if (event.target.closest('a')) closeMenu();
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!isMenuOpen()) return;
+        if (!nav.contains(event.target)) closeMenu();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && isMenuOpen()) {
+          closeMenu();
+          button.focus();
+        }
+      });
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth >= mobileBreakpoint) closeMenu();
+      });
+    })();
+  </script>
 </body>
 </html>
