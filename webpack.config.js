@@ -1,6 +1,6 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ManifestPlugin = require('webpack-manifest-plugin');
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const isProduction = process.env.NODE_ENV === 'production';
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
@@ -11,20 +11,15 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: isProduction ? '[name].[hash].js' : '[name].js',
-        chunkFilename: isProduction ? '[id].[hash].js' : '[id].js',
+        filename: isProduction ? '[name].[contenthash].js' : '[name].js',
+        chunkFilename: isProduction ? '[id].[contenthash].js' : '[id].js',
     },
     module: {
         rules: [
             {
                 test: /\.css$/,
                 use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            hmr: process.env.NODE_ENV === 'development',
-                        },
-                    },
+                    MiniCssExtractPlugin.loader,
                     'css-loader',
                     'postcss-loader',
                 ]
@@ -34,9 +29,9 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({
-            filename: isProduction ? '[name].[hash].css' : '[name].css'
+            filename: isProduction ? '[name].[contenthash].css' : '[name].css'
         }),
-        new ManifestPlugin({
+        new WebpackManifestPlugin({
             fileName: '../_data/manifest.yml',
             publicPath: '/dist/',
         }),

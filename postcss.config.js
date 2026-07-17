@@ -7,13 +7,12 @@ const purgecss = require('@fullhuman/postcss-purgecss')({
     whitelistPatterns: [/^.[^\.]*\.[^\. "']*/g]
 });
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 module.exports = {
     plugins: [
         require('tailwindcss'),
-        require('cssnano')(),
         require('autoprefixer'),
-        ...process.env.NODE_ENV === 'production'
-            ? [purgecss]
-            : []
+        ...(isProduction ? [require('cssnano')({ preset: 'default' }), purgecss] : [])
     ]
 };

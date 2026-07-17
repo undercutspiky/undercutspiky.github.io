@@ -4,9 +4,39 @@ layout: default
 title: Dhananjay's Home
 image: /assets/images/logo2.jpg
 ---
-<div class="bg-gray-100 w-100 px-8 py-4 font-epilogue text-lg text-gray-800 text-justify">
-  <div class="mb-2"><span class="text-yellow-600">Yellow</span> and welcome! Thanks for stopping by!</div>
-  <div class="text-justify">
-  I don't know yet what this blog is gonna be all about but I'm getting started with some deep learning blog posts for now. I most likely won't be writing tutorials or articles on the already popular stuff. I'd like to write about research works that intrigue me. Sometimes I'll pick some random papers without a common theme, other times some papers which do have something in common. Let's see how this goes and what I feel like after first couple of articles.
+<section class="hero" aria-label="Site introduction">
+  <div class="hero-inner">
+    <p class="hero-label">Deep Learning Research Notebook</p>
+    <h1 class="hero-title">Lesser known things<br>about Deep Learning</h1>
+    <p class="hero-tagline">
+      Research works that intrigue me — not the popular papers everyone already knows,
+      but the ones that reveal something surprising about neural networks.
+    </p>
+    <a href="/blog" class="hero-cta">Browse all posts &rarr;</a>
   </div>
-</div>
+</section>
+
+<section class="latest-posts" aria-labelledby="latest-heading">
+  <h2 class="section-heading" id="latest-heading">Latest Posts</h2>
+  <div class="post-grid">
+    {% for post in site.posts limit:3 %}
+    <article class="post-card">
+      <a href="{{ post.url }}" class="post-card-img-link" tabindex="-1" aria-hidden="true">
+        <div class="post-card-img-wrap">
+          <img src="{{ post.image }}" alt="" loading="lazy" class="post-card-img">
+        </div>
+      </a>
+      <div class="post-card-body">
+        <time class="post-card-date" datetime="{{ post.date | date_to_xmlschema }}">
+          {{ post.date | date: '%b %d, %Y' }}
+        </time>
+        <h3 class="post-card-title">
+          <a href="{{ post.url }}" class="post-card-title-link">{{ post.title }}</a>
+        </h3>
+        <p class="post-card-desc">{{ post.description }}</p>
+        <a href="{{ post.url }}" class="post-card-read">Read &rarr;</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
