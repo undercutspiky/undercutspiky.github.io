@@ -1,6 +1,6 @@
 # djay.lab — Dhananjay's Website
 
-Personal website and deep-learning research notebook built with **Jekyll** and styled with **Tailwind CSS v3**.
+Personal website and deep-learning research notebook built with **Jekyll** and styled with **Tailwind CSS v4**.
 
 ## Prerequisites
 
