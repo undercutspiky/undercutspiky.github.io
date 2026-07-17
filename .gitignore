@@ -3,5 +3,4 @@ _site
 .jekyll-cache
 .DS_Store
 tmp
-Gemfile.lock
 dist/

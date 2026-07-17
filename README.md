@@ -6,9 +6,9 @@ Personal website and deep-learning research notebook built with **Jekyll** and s
 
 | Tool | Version |
 |------|---------|
-| Ruby | ≥ 3.2 |
-| Bundler | ≥ 2.x |
-| Node.js | ≥ 18 |
+| Ruby | 3.3 |
+| Bundler | 2.6.x |
+| Node.js | 24 LTS |
 | npm | ≥ 9 |
 
 ## Local installation
@@ -22,6 +22,9 @@ npm ci
 
 # Install Ruby/Jekyll dependencies
 bundle install
+
+# Install the Chromium browser used by the responsive checks
+npx playwright install --with-deps chromium
 ```
 
 ## Development
@@ -48,13 +51,24 @@ npm run build
 
 Outputs the minified stylesheet to `assets/css/site.css`.
 
-## Jekyll preview (no live reload)
+## Jekyll build
 
 ```bash
-bundle exec jekyll build
+bundle exec jekyll build --strict_front_matter
 ```
 
 The built site is written to `_site/`.
+
+## Responsive regression checks
+
+```bash
+npm run test:responsive
+```
+
+This command rebuilds the CSS, rebuilds the Jekyll site with strict front matter,
+and runs the Playwright checks against Home, Research, Blog, About, one generated
+blog post, and one generated research entry. Install the Playwright Chromium browser
+locally first with `npx playwright install --with-deps chromium`.
 
 ## How deployment works
 
@@ -77,14 +91,24 @@ A GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pu
 request. It:
 
 1. Installs Node dependencies (`npm ci`)
-2. Builds the production CSS (`npm run build`)
-3. Checks that `assets/css/site.css` exists and reports its size
-4. Installs Ruby gems (`bundle install`)
-5. Builds the Jekyll site with `--strict_front_matter` (fails on Liquid errors)
-6. Checks that key output pages exist: `index.html`, `blog.html`, `about.html`,
+2. Installs the Playwright Chromium browser and Linux dependencies
+3. Builds the production CSS (`npm run build`)
+4. Checks that `assets/css/site.css` exists and reports its size
+5. Installs Ruby gems (`bundle install`)
+6. Builds the Jekyll site with `--strict_front_matter` (fails on Liquid errors)
+7. Checks that key output pages exist: `index.html`, `blog.html`, `about.html`,
    `research.html`
+8. Runs the responsive Playwright checks and uploads failure screenshots when useful
 
 Pull-request builds do **not** deploy to GitHub Pages.
+
+## Dependency maintenance
+
+- `package-lock.json` and `Gemfile.lock` are committed for reproducible local, CI,
+  and GitHub Pages branch builds.
+- Dependabot checks npm, Bundler, and GitHub Actions dependencies weekly.
+- Patch and minor updates are grouped where practical, while major upgrades stay in
+  separate pull requests.
 
 ## Creating a blog post
 
@@ -200,7 +224,7 @@ The research item page will automatically show the linked post under "Related Wr
 | `assets/css/site.css` | Minified Tailwind + custom CSS | **Yes** (needed for GitHub Pages) |
 | `assets/index.css` | CSS source — edit this, not site.css | Yes (source) |
 | `_site/` | Jekyll output — entire website | No (in `.gitignore`) |
-| `Gemfile.lock` | Bundler lock | No (in `.gitignore`) |
+| `Gemfile.lock` | Bundler lock for reproducible builds | Yes |
 
 ## Troubleshooting
 

@@ -4,10 +4,11 @@
     "build": "npx tailwindcss -i ./assets/index.css -o ./assets/css/site.css --minify",
     "build:dev": "npx tailwindcss -i ./assets/index.css -o ./assets/css/site.css",
     "watch": "npx tailwindcss -i ./assets/index.css -o ./assets/css/site.css --watch",
-    "test:responsive": "npm run build && bundle exec jekyll build --strict_front_matter && node ./scripts/responsive-check.mjs"
+    "test:responsive:check": "node ./scripts/responsive-check.mjs",
+    "test:responsive": "npm run build && bundle exec jekyll build --strict_front_matter && npm run test:responsive:check"
   },
   "devDependencies": {
-    "playwright": "^1.56.1",
-    "tailwindcss": "^3.4.17"
+    "playwright": "^1.61.1",
+    "tailwindcss": "^3.4.19"
   }
 }
