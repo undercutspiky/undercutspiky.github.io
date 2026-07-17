@@ -1,0 +1,55 @@
+{% comment %}
+  Research card include.
+  Usage: {% include research_card.html item=research_item %}
+  The `item` variable should be a document from site.research.
+{% endcomment %}
+{% assign item = include.item %}
+
+{% assign badge_class = "research-badge-project" %}
+{% if item.status == "Published" %}{% assign badge_class = "research-badge-published" %}
+{% elsif item.status == "Preprint" %}{% assign badge_class = "research-badge-preprint" %}
+{% elsif item.status == "Ongoing" %}{% assign badge_class = "research-badge-ongoing" %}
+{% endif %}
+
+<article class="research-card{% if item.featured %} featured{% endif %}">
+  {% if item.image %}
+  <a href="{{ item.url | relative_url }}" class="research-card-thumb" tabindex="-1" aria-hidden="true">
+    <img src="{{ item.image }}" alt="{{ item.image_alt | default: '' }}" loading="lazy">
+  </a>
+  {% endif %}
+  <div class="research-card-body">
+    <div class="research-card-meta">
+      {% if item.status %}<span class="research-badge {{ badge_class }}">{{ item.status }}</span>{% endif %}
+      {% if item.venue %}<span class="research-card-venue">{{ item.venue }}</span>{% endif %}
+      {% if item.year %}<span class="research-card-year">{{ item.year }}</span>{% endif %}
+    </div>
+    <h3 class="research-card-title">
+      <a href="{{ item.url | relative_url }}" class="research-card-title-link">{{ item.title }}</a>
+    </h3>
+    {% if item.summary %}
+    <p class="research-card-summary">{{ item.summary }}</p>
+    {% endif %}
+    {% if item.tags and item.tags.size > 0 %}
+    <ul class="research-card-tags" aria-label="Tags">
+      {% for tag in item.tags %}
+      <li class="research-tag">{{ tag }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% assign has_links = false %}
+    {% if item.paper_url or item.preprint_url or item.code_url or item.project_url or item.video_url or item.slides_url or item.dataset_url %}
+      {% assign has_links = true %}
+    {% endif %}
+    {% if has_links %}
+    <div class="research-card-links">
+      {% if item.paper_url %}<a href="{{ item.paper_url }}" class="research-link-btn" target="_blank" rel="noopener">Paper</a>{% endif %}
+      {% if item.preprint_url %}<a href="{{ item.preprint_url }}" class="research-link-btn" target="_blank" rel="noopener">Preprint</a>{% endif %}
+      {% if item.code_url %}<a href="{{ item.code_url }}" class="research-link-btn" target="_blank" rel="noopener">Code</a>{% endif %}
+      {% if item.project_url %}<a href="{{ item.project_url }}" class="research-link-btn" target="_blank" rel="noopener">Project</a>{% endif %}
+      {% if item.video_url %}<a href="{{ item.video_url }}" class="research-link-btn" target="_blank" rel="noopener">Video</a>{% endif %}
+      {% if item.slides_url %}<a href="{{ item.slides_url }}" class="research-link-btn" target="_blank" rel="noopener">Slides</a>{% endif %}
+      {% if item.dataset_url %}<a href="{{ item.dataset_url }}" class="research-link-btn" target="_blank" rel="noopener">Dataset</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</article>

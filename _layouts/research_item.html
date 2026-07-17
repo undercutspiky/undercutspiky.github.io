@@ -1,0 +1,143 @@
+---
+layout: default
+seo:
+  type: ScholarlyArticle
+---
+{% assign badge_class = "research-badge-project" %}
+{% if page.status == "Published" %}{% assign badge_class = "research-badge-published" %}
+{% elsif page.status == "Preprint" %}{% assign badge_class = "research-badge-preprint" %}
+{% elsif page.status == "Ongoing" %}{% assign badge_class = "research-badge-ongoing" %}
+{% endif %}
+
+<article class="research-article">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header class="research-header">
+    <div class="research-header-meta">
+      {% if page.status %}<span class="research-badge {{ badge_class }}">{{ page.status }}</span>{% endif %}
+      {% if page.venue %}<span class="research-card-venue">{{ page.venue }}</span>{% endif %}
+      {% if page.year %}<span class="research-card-year">{{ page.year }}</span>{% endif %}
+    </div>
+
+    <h1 class="research-title">{{ page.title }}</h1>
+
+    {% if page.authors and page.authors.size > 0 %}
+    <p class="research-authors">{{ page.authors | join: ", " }}</p>
+    {% endif %}
+
+    {% if page.venue or page.year %}
+    <p class="research-venue-line">
+      {% if page.venue %}{{ page.venue }}{% endif %}{% if page.venue and page.year %} &middot; {% endif %}{% if page.year %}{{ page.year }}{% endif %}
+    </p>
+    {% endif %}
+
+    <!-- Resource links -->
+    {% assign has_links = false %}
+    {% if page.paper_url or page.preprint_url or page.code_url or page.project_url or page.video_url or page.slides_url or page.dataset_url %}
+      {% assign has_links = true %}
+    {% endif %}
+    {% if has_links %}
+    <div class="research-link-group">
+      {% if page.paper_url %}<a href="{{ page.paper_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128196; Paper</a>{% endif %}
+      {% if page.preprint_url %}<a href="{{ page.preprint_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128196; Preprint</a>{% endif %}
+      {% if page.code_url %}<a href="{{ page.code_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128187; Code</a>{% endif %}
+      {% if page.project_url %}<a href="{{ page.project_url }}" class="research-link-btn" target="_blank" rel="noopener">&#127760; Project</a>{% endif %}
+      {% if page.video_url %}<a href="{{ page.video_url }}" class="research-link-btn" target="_blank" rel="noopener">&#9654;&#65039; Video</a>{% endif %}
+      {% if page.slides_url %}<a href="{{ page.slides_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128196; Slides</a>{% endif %}
+      {% if page.dataset_url %}<a href="{{ page.dataset_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128202; Dataset</a>{% endif %}
+      {% if page.doi %}<a href="https://doi.org/{{ page.doi }}" class="research-link-btn" target="_blank" rel="noopener">DOI</a>{% endif %}
+    </div>
+    {% endif %}
+  </header>
+
+  <!-- ── Hero image ────────────────────────────────────────────────────────── -->
+  {% if page.image %}
+  <figure>
+    <img class="research-hero-img" src="{{ page.image }}" alt="{{ page.image_alt | default: '' }}" loading="lazy">
+    {% if page.image_alt %}<figcaption>{{ page.image_alt }}</figcaption>{% endif %}
+  </figure>
+  {% endif %}
+
+  <!-- ── Plain-language summary ─────────────────────────────────────────────── -->
+  {% if page.summary %}
+  <section class="research-section" aria-labelledby="summary-heading">
+    <h2 class="research-section-title" id="summary-heading">Summary</h2>
+    <p>{{ page.summary }}</p>
+  </section>
+  {% endif %}
+
+  <!-- ── Body content (Markdown sections) ──────────────────────────────────── -->
+  {{ content }}
+
+  <!-- ── Contributions ─────────────────────────────────────────────────────── -->
+  {% if page.contributions and page.contributions.size > 0 %}
+  <section class="research-section" aria-labelledby="contributions-heading">
+    <h2 class="research-section-title" id="contributions-heading">Contributions</h2>
+    <ul class="research-contributions-list">
+      {% for contribution in page.contributions %}
+      <li>{{ contribution }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <!-- ── Tags ──────────────────────────────────────────────────────────────── -->
+  {% if page.tags and page.tags.size > 0 %}
+  <div class="research-card-tags" aria-label="Tags" style="margin-top:2rem;">
+    {% for tag in page.tags %}
+    <span class="research-tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Citation & BibTeX ─────────────────────────────────────────────────── -->
+  {% if page.citation or page.bibtex %}
+  <section class="research-section" aria-labelledby="citation-heading">
+    <h2 class="research-section-title" id="citation-heading">Citation</h2>
+    {% if page.citation %}
+    <p>{{ page.citation }}</p>
+    {% endif %}
+    {% if page.bibtex %}
+    <div class="bibtex-block">
+      <button class="bibtex-copy-btn" onclick="copyBibtex()" aria-label="Copy BibTeX to clipboard">Copy</button>
+      <pre id="bibtex-content">{{ page.bibtex | escape }}</pre>
+    </div>
+    <script>
+      function copyBibtex() {
+        var text = document.getElementById('bibtex-content').innerText;
+        navigator.clipboard.writeText(text).then(function() {
+          var btn = document.querySelector('.bibtex-copy-btn');
+          var original = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = original; }, 1500);
+        });
+      }
+    </script>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <!-- ── Related blog posts ─────────────────────────────────────────────────── -->
+  {% assign related_posts = "" | split: "" %}
+  {% for post in site.posts %}
+    {% if post.research contains page.slug %}
+      {% assign related_posts = related_posts | push: post %}
+    {% endif %}
+  {% endfor %}
+  {% if related_posts.size > 0 %}
+  <section class="research-section" aria-labelledby="related-posts-heading">
+    <h2 class="research-section-title" id="related-posts-heading">Related Writing</h2>
+    <ul class="related-posts-list">
+      {% for post in related_posts %}
+      <li>
+        <a href="{{ post.url | relative_url }}" class="related-post-link">
+          <span class="rp-title">{{ post.title }}</span>
+          <time class="rp-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%b %d, %Y' }}</time>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+</article>
