@@ -838,6 +838,7 @@ figure > figcaption {
   font-size: 0.9rem;
   color: var(--text-muted);
   line-height: 1.6;
+  /* line-clamp: native CSS, no plugin required (Tailwind v3 JIT includes this natively) */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
