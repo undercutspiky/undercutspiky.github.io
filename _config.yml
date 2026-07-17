@@ -17,6 +17,7 @@ collections:
     permalink: /research/:slug/
 
 exclude:
+  - "vendor"
   - "tailwind.config.js"
   - "package*.json"
   - "package-lock.json"
