@@ -31,6 +31,12 @@ seo:
     </p>
     {% endif %}
 
+    {% if page.date %}
+    <div class="research-header-dates">
+      <time class="research-header-date" datetime="{{ page.date | date_to_xmlschema }}">Published {{ page.date | date: '%-d %B %Y' }}</time>{% if page.updated %} &middot; <time class="research-header-updated" datetime="{{ page.updated | date_to_xmlschema }}">Updated {{ page.updated | date: '%-d %B %Y' }}</time>{% endif %}
+    </div>
+    {% endif %}
+
     <!-- Resource links -->
     {% assign has_links = false %}
     {% if page.paper_url or page.preprint_url or page.code_url or page.project_url or page.video_url or page.slides_url or page.dataset_url %}
@@ -120,9 +126,11 @@ seo:
   <!-- ── Related blog posts ─────────────────────────────────────────────────── -->
   {% assign related_posts = "" | split: "" %}
   {% for post in site.posts %}
+    {% unless post.draft %}
     {% if post.research contains page.slug %}
       {% assign related_posts = related_posts | push: post %}
     {% endif %}
+    {% endunless %}
   {% endfor %}
   {% if related_posts.size > 0 %}
   <section class="research-section" aria-labelledby="related-posts-heading">

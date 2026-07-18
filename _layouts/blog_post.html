@@ -10,6 +10,14 @@ seo:
       <polyline points="20,65 50,25 80,65"></polyline>
     </svg>
   </div>
+  <header class="post-header">
+    <p class="post-header-label">Writing</p>
+    <h1 class="post-header-title">{{ page.title }}</h1>
+    {% if page.description %}<p class="post-header-desc">{{ page.description }}</p>{% endif %}
+    <div class="post-header-dates">
+      <time class="post-header-date" datetime="{{ page.date | date_to_xmlschema }}">Published {{ page.date | date: '%-d %B %Y' }}</time>{% if page.updated %} &middot; <time class="post-header-updated" datetime="{{ page.updated | date_to_xmlschema }}">Updated {{ page.updated | date: '%-d %B %Y' }}</time>{% endif %}
+    </div>
+  </header>
   {{ content }}
 </article>
 <script>

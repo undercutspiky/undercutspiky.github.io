@@ -6,17 +6,23 @@ image: /assets/images/logo2.jpg
 ---
 <section class="hero" aria-label="Site introduction">
   <div class="hero-inner">
-    <p class="hero-label">Deep Learning Research Notebook</p>
-    <h1 class="hero-title">Lesser known things<span class="hero-title-break"></span>about Deep Learning</h1>
+    <p class="hero-label">Deep Learning &middot; Robustness &middot; Efficiency</p>
+    <h1 class="hero-title">I study how neural networks learn, generalise, and scale.</h1>
     <p class="hero-tagline">
-      Research works that intrigue me — not the popular papers everyone already knows,
-      but the ones that reveal something surprising about neural networks.
+      I'm Dhananjay Tomar, a deep-learning researcher working on robust
+      representation learning and efficient model design. I study how models
+      can generalise across domains, process inputs too large for GPU memory,
+      and remove redundant computation—often through challenging problems in
+      computer vision and computational pathology.
     </p>
-    <a href="/blog" class="hero-cta">Browse all posts &rarr;</a>
+    <div class="hero-cta-group">
+      <a href="/research" class="hero-cta">Explore my research</a>
+      <a href="/about" class="hero-cta-secondary">About me</a>
+    </div>
   </div>
 </section>
 
-{% assign featured_research = site.research | where: "featured", true | sort: "date" | reverse %}
+{% assign featured_research = site.research | where_exp: "item", "item.draft != true" | where: "featured", true | sort: "date" | reverse %}
 {% if featured_research.size > 0 %}
 <section class="featured-research" aria-labelledby="featured-research-heading">
   <h2 class="section-heading" id="featured-research-heading">Featured Research</h2>
