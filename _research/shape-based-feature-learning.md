@@ -3,6 +3,7 @@ layout: research_item
 title: "Shape-based Feature Learning in Deep Neural Networks"
 short_title: "Shape-based Feature Learning"
 slug: shape-based-feature-learning
+draft: true
 year: 2024
 date: 2024-01-01
 venue: "NeurIPS 2024"
