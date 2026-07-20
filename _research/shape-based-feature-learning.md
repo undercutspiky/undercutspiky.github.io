@@ -50,11 +50,13 @@ contributions:
 
 ## The problem
 
-Histopathology is the study of disease (pathology) in tissue (histo-). Deep learning papers in histopathology most commonly look at tissues with tumours that may be cancerous.  A tissue sample is cut into a very thin slice, stained, placed on a glass slide, and scanned into a digital image (scan). In the common haematoxylin-and-eosin (H&E) stain, nuclei usually appear blue or purple while much of the surrounding tissue appears pink.
+One of the biggest hurdles in medical AI is that a cancer-detecting model trained at Hospital A often fails when tested at Hospital B.
 
-These colours are helpful, but they are not fixed features of the disease. Scans can look different because hospitals use different staining methods, scanners, tissue processing, or even batches of the same stain. As a result, a model may work well on data from its training hospital but fail when the biology is similar but the image appearance changes.
+Why does this happen? To look at tissue under a microscope, it must be sliced very thin and stained with chemicals—most commonly haematoxylin and eosin (H&E), which turns cell nuclei purple and surrounding tissue pink. But hospitals use different scanners, different staining procedures, and even different batches of chemicals.
 
-Our paper asks a simple question: **Can we make a cancer classifier depend less on hospital-specific appearance and more on biological structure that stays useful across hospitals?**
+To a human pathologist, these visual differences are minor. But a neural network will often lazily memorize the specific "look" of its training hospital. When the image appearance changes, the model breaks.
+
+Our paper asks a simple question: **Can we force a cancer classifier to stop looking at hospital-specific colors, and instead focus on the biological structures that actually matter?**
 
 <figure class="research-figure">
   <img
@@ -69,24 +71,27 @@ Our paper asks a simple question: **Can we make a cancer classifier depend less 
   </figcaption>
 </figure>
 
-## The idea
+## The idea: Shape over color
 
-Cancer affects the shape and arrangement of cells, especially their nuclei. Cells may become larger, irregular, crowded, or look unusual. Pathologists look for these changes and consider the overall tissue context when diagnosing and grading cancer.
+While the exact shade of pink or purple might change depending on the hospital, the underlying biology of cancer does not. Cancer notoriously alters the shape, size, and crowding of cell nuclei. Pathologists rely heavily on these structural changes to diagnose the disease.
 
-We tested a cancerous vs non-cancerous image classifier on a very simple representation: binary masks that show only the nuclei in white and make everything else black. These masks preserve only nuclear shape and arrangement.
+To see if we could isolate this structural signal, we generated simple binary masks: black-and-white images where the nuclei are white and absolutely everything else is black.
 
-This result was a turning point for the project. A model trained only on nuclear masks from just one hospital could still perform the classification task well, but crucially it also worked well on data from other hospitals. Nuclear morphology & organisation were not just a weak extra signal; they had enough information for the classification task.
+This led to a turning point in the project. We found that a model trained *only* on these stripped-down masks could still accurately classify cancer—and crucially, it generalised beautifully to data from other hospitals. The shape and arrangement of the nuclei contained all the information we needed.
 
-However, a system that uses only masks would need a segmentation model during testing. Our goal was to use masks **only to guide training**, and then not need them afterward. We developed a method that could exactly do that.
+But there was a catch. If we deployed a mask-only model in the real world, hospitals would have to run a separate segmentation algorithm on every single image before diagnosing it. Our goal was to use these masks **only as a teacher during training**, so the model could learn from them but wouldn't need them in practice.
 
 ## How the method works
 
-During training, the same ResNet-50 processes two aligned inputs:
+We designed a two-branch training method using a standard ResNet-50. During training, the model looks at two aligned inputs simultaneously:
+1. The full-color H&E image (and occasionally the image multiplied by its mask).
+2. The black-and-white nuclear mask.
 
-1. the original H&E image, or occasionally the image multiplied by its nuclear mask; and
-2. the corresponding binary nuclear mask.
+The model is trained to classify both. But here is where the magic happens: we explicitly minimise the Euclidean distance between the internal feature maps of both inputs (right before global average pooling).
 
-The model is trained to classify both inputs. But crucially, we minimise the Euclidean distance between their feature maps before global average pooling. In other words, we encourage the representation of the ordinary image to resemble the representation produced when colour and most non-nuclear information have been removed. Minimising the Euclidean distance between the two representations is where the magic lies.
+**In plain English:** We mathematically force the model's understanding of the full-color image to match its understanding of the black-and-white mask. It's like giving a student a highly detailed photograph and a basic sketch, and training them to focus only on the structural features they both share.
+
+To make this alignment easier for the model to learn, we sometimes feed the image branch a "bridged" input: the original image multiplied by the mask, which keeps the nuclear colors but blacks out the background.
 
 <figure class="research-figure">
   <img
@@ -98,8 +103,6 @@ The model is trained to classify both inputs. But crucially, we minimise the Euc
     The masks are needed only while training. At inference time, the model receives an ordinary H&E image.
   </figcaption>
 </figure>
-
-The image-times-mask input acts as a bridge between a full-colour image and a binary mask. It retains the appearance of nuclei while suppressing the surrounding tissue, making the alignment objective (Euclidean distance) easier to optimise. We also delayed the alignment loss for the first few epochs because applying it immediately sometimes leaves the network in a collapsed state.
 
 ## Evaluation
 
@@ -190,9 +193,13 @@ The important result is not simply that nuclear guidance replaced colour augment
 
 ## Robustness beyond hospital shifts
 
-We also tested common image corruptions such as blur, compression, elastic deformation, and several kinds of noise. Models trained with our method generally degraded more slowly than other methods.
+Because our model relies on structure rather than superficial color cues, we wanted to see if it was physically harder to break.
 
-The adversarial results were particularly revealing. Under a projected-gradient attack, our models remained accurate at perturbation strengths that caused large drops for ERM and L2D. We also generated attacks using one family of models and evaluated those perturbed images on another family. Perturbed images generated using other models did not fool our method’s models much, while the reverse was not true.
+First, we tested common image corruptions (like blur, heavy JPEG compression, and digital noise). Models trained with our nuclear-guided method degraded much more slowly than standard models.
+
+Second, we tried to deliberately trick the AI using adversarial attacks (specifically, projected-gradient descent). Our models remained accurate even when hit with heavy digital perturbations that caused standard models (like ERM and L2D) to completely fail.
+
+Interestingly, when we used standard models to generate adversarial images and fed them to our model, our model wasn't easily fooled. But when we generated attacks against *our* model and fed them to the standard baselines, those models broke down. My reasoning is that since our model is trained to ignore the background and focus on nuclei, an attacker practically has to alter the nuclear structure itself to trick it! Although this reasoning is consistent with the results, I need to point out that the experiment alone does not prove the mechanism.
 
 <figure class="research-figure">
   <img
@@ -204,8 +211,6 @@ The adversarial results were particularly revealing. Under a projected-gradient 
     Attacks generated against our models transferred to other methods, while our models were comparatively insensitive to attacks generated against those methods.
   </figcaption>
 </figure>
-
-One interpretation is that a model focused on nuclear structure has fewer useful superficial cues for an attack to exploit. This is consistent with the results, although the experiment alone does not prove the mechanism.
 
 ## Did the model really focus on nuclei?
 
