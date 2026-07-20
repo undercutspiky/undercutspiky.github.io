@@ -73,7 +73,9 @@ seo:
   {% endif %}
 
   <!-- ── Body content (Markdown sections) ──────────────────────────────────── -->
-  {{ content }}
+  <div class="research-body">
+    {{ content }}
+  </div>
 
   <!-- ── Contributions ─────────────────────────────────────────────────────── -->
   {% if page.contributions and page.contributions.size > 0 %}

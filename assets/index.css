@@ -1586,3 +1586,303 @@ figure > figcaption {
     -webkit-line-clamp: 4;
   }
 }
+
+/* ============================================================
+   RESEARCH MARKDOWN BODY
+   Content written inside _research/*.md
+   ============================================================ */
+
+.research-body {
+  margin-top: 2.75rem;
+}
+
+.research-body > :first-child {
+  margin-top: 0;
+}
+
+/* Main section headings written as ## Heading in Markdown */
+.research-body h2 {
+  margin: 3.25rem 0 1.25rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--card-border);
+
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.45rem, 3vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--teal);
+
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+
+/* Optional lower-level headings */
+.research-body h3 {
+  margin: 2.25rem 0 0.8rem;
+
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.15rem, 2.5vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+
+.research-body p {
+  margin: 0 0 1.15rem;
+  color: var(--text);
+}
+
+/* Tailwind resets native list markers, so restore them here. */
+.research-body ul,
+.research-body ol {
+  margin: 0 0 1.35rem;
+  padding-left: 1.65rem;
+}
+
+.research-body ul {
+  list-style-type: disc;
+}
+
+.research-body ol {
+  list-style-type: decimal;
+}
+
+.research-body li {
+  margin: 0.45rem 0;
+  padding-left: 0.2rem;
+  color: var(--text);
+}
+
+.research-body li::marker {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.research-body strong {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.research-body a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.research-body a:hover {
+  color: var(--cyan);
+}
+
+.research-body blockquote {
+  margin: 1.75rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--teal);
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: rgba(45, 212, 191, 0.06);
+  color: var(--text-muted);
+}
+
+.research-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Scientific figures inside research pages ---- */
+
+.research-figure,
+figure.blog-post {
+  margin: 2.25rem 0 2.75rem;
+  padding: 1rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(22, 31, 46, 0.98),
+      rgba(17, 24, 39, 0.98)
+    );
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.18);
+}
+
+.research-figure img,
+figure.blog-post > img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 46rem;
+  margin: 0 auto;
+
+  background: #ffffff;
+  border: 0;
+  border-radius: 0.4rem;
+}
+
+.research-figure figcaption,
+figure.blog-post > figcaption {
+  max-width: 68ch;
+  margin: 0.85rem auto 0;
+
+  color: var(--text-muted);
+  font-family: "Epilogue", sans-serif;
+  font-size: 0.84rem;
+  font-style: normal;
+  line-height: 1.55;
+  text-align: center;
+}
+
+@media (max-width: 639px) {
+  .research-figure,
+  figure.blog-post {
+    margin: 1.75rem 0 2.25rem;
+    padding: 0.6rem;
+  }
+
+  .research-figure figcaption,
+  figure.blog-post > figcaption {
+    padding: 0 0.25rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ============================================================
+   NATIVE ARTICLE TABLES
+   Shared by blog posts and research pages
+   ============================================================ */
+
+.article-table-scroll {
+  max-width: 100%;
+  margin: 2rem 0 2.75rem;
+  overflow-x: auto;
+
+  background: var(--card-surface);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.16);
+}
+
+.article-table-scroll:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+.research-article .article-table,
+.post-article .article-table {
+  display: table !important;
+  width: 100%;
+  min-width: 36rem;
+  margin: 0;
+  overflow: visible;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.article-table caption {
+  caption-side: bottom;
+  padding: 0.8rem 1rem;
+
+  color: var(--text-muted);
+  background: rgba(5, 11, 24, 0.26);
+  border-top: 1px solid var(--card-border);
+
+  font-family: "Epilogue", sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.article-table th,
+.article-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+  white-space: nowrap;
+}
+
+.article-table thead th {
+  color: var(--teal);
+  background: rgba(45, 212, 191, 0.075);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.article-table thead th:first-child,
+.article-table tbody th {
+  text-align: left;
+}
+
+.article-table thead th:not(:first-child),
+.article-table td {
+  text-align: right;
+}
+
+.article-table tbody th {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.article-table tbody tr {
+  transition: background 150ms ease;
+}
+
+.article-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.article-table tbody tr:last-child th,
+.article-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.article-table-best {
+  background: rgba(45, 212, 191, 0.075);
+}
+
+.article-table-best th {
+  color: var(--teal);
+}
+
+.table-uncertainty {
+  margin-left: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.82em;
+  font-weight: 400;
+}
+
+/* Keep research previews at a sensible image ratio instead of
+   stretching them to the full height of a horizontal card. */
+
+@media (min-width: 640px) {
+  .research-card {
+    align-items: center;
+  }
+
+  .research-card-thumb {
+    width: 14rem;
+    aspect-ratio: 16 / 9;
+    margin: 1rem 0 1rem 1rem;
+    border-radius: 0.5rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .research-card-thumb {
+    width: 18rem;
+    margin: 1.25rem 0 1.25rem 1.25rem;
+  }
+}
+
+/* Keep template-generated and Markdown research headings consistent. */
+.research-section-title,
+.research-body h2 {
+  font-size: clamp(1.45rem, 3vw, 1.75rem);
+  line-height: 1.25;
+}

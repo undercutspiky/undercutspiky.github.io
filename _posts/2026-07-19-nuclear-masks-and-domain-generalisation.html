@@ -1,0 +1,219 @@
+---
+layout: blog_post
+title: What happens when a cancer model can see only cell nuclei?
+image: /assets/images/research/shape-based-feature-learning/hero-original-mask.png
+description: The story behind our NeurIPS 2024 paper on nuclear shape, hospital shifts, and robust cancer classification.
+research:
+  - shape-based-feature-learning
+---
+
+<p class="blog-post">
+  It all started when my supervisor (Andreas) asked me to work on single domain generalisation. In the medical world, you typically only have data from one hospital to train your models. The problem is, when you take that model and test it on data from a different hospital, it often struggles a lot to perform well.
+</p>
+
+<p class="blog-post">
+  I started looking at how other people were solving this. Mostly, they were using augmentations or stain-normalisation methods like Macenko to manipulate the colours. But I wanted to try something different: what if we could teach the model to learn "domain-invariant" features? In other words, features that stay exactly the same no matter which hospital, scanner, or staining procedure the image came from. 
+</p>
+
+<p class="blog-post">
+  That idea sent me down a rabbit hole of failed edge detectors, unstable training runs, and a lucky misunderstanding that eventually became our NeurIPS 2024 paper, <a href="https://proceedings.neurips.cc/paper_files/paper/2024/hash/4cc4cc789849230a4f495a2060b45c87-Abstract-Conference.html" target="_blank" rel="noopener noreferrer"><em>Are nuclear masks all you need for improved out-of-domain generalisation?</em></a>
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/shape-based-feature-learning/hero-original-mask.png" alt="An H&E-stained histopathology tile beside a binary mask marking its nuclei.">
+  <figcaption>An ordinary H&amp;E image and the much more austere representation that changed the project.</figcaption>
+</figure>
+
+<h2 class="blog-post">The setup: finding cancer in pink and purple pixels</h2>
+
+<p class="blog-post">
+  Histopathology basically involves taking a tiny slice of tissue, staining it so the cells become visible (usually turning them pink and purple), and examining it for disease. Our specific task was straightforward: we take small digital tiles (patches) of these HUGE scanned slides and train a model to classify them as tumour or non-tumour.
+</p>
+
+<h2 class="blog-post">The problem: the disease stays the same, but the image doesn't</h2>
+
+<p class="blog-post">
+  The headache is that a tumour from one hospital can look noticeably different from the exact same type of tumour in another hospital. Different scanners, staining chemicals, and lab habits change the visual appearance of the slides. A neural network will happily use these hospital-specific visual quirks as shortcuts instead of learning the actual biology.
+</p>
+
+<p class="blog-post">
+  Standard fixes usually try to forcefully match the colours across hospitals (like Macenko normalisation) or randomly change brightness and hue (data augmentation) so the model can't rely on a specific visual style. But I kept wondering: instead of just scrambling the colours, could we explicitly tell the model what kind of information <em>ought</em> to survive the change of hospital?
+</p>
+
+<h2 class="blog-post">Failing with edges, pivoting to nuclei</h2>
+
+<p class="blog-post">
+  I thought about what actually stays constant across different medical centres. The colours change drastically, but the <em>shape</em> of the biological structures doesn't. My first thought was to use a Canny edge detector to strip away all the colour and force the model to look at the geometry. 
+</p>
+
+<p class="blog-post">
+  It didn't work out. While the Canny edge detector got rid of the colours, the shapes it produced were still heavily dependent on the specific scanner and hospital. But the core idea was still there: in histopathology, a weirdly shaped cell usually means a cancerous tumour, while normal shapes mean healthy tissue. I just needed to isolate the cells.
+</p>
+
+<p class="blog-post">
+  The problem? I couldn't find a good segmentation model for whole cells. When I told my supervisor, he suggested a pragmatic pivot: "Why don't you just try nuclei instead, and we can get to full cells later?"
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/shape-based-feature-learning/ablation-grid.png" alt="An H&E tile, its nuclear mask, the image multiplied by the mask, nuclei filled with black or white, an inverted mask, and an image with nuclei inpainted away.">
+  <figcaption>The original tile and several deliberately destructive variants. Each one keeps or removes a different part of the signal.</figcaption>
+</figure>
+
+<h2 class="blog-post">A surprising discovery</h2>
+
+<p class="blog-post">
+  Before designing any complicated method or architecture, I needed to know if nuclear masks even contained enough information to detect cancer. So, I generated binary nuclear segmentation masks for my dataset and trained a classifier using <em>only</em> those black-and-white masks.
+</p>
+
+<p class="blog-post">
+  To my absolute surprise, it wasn't just a weak auxiliary signal—it worked beautifully. Even better, it generalised across medical centres almost perfectly. Pathologists usually look at the whole tissue context, and while people had tried using nuclear features before, finding that nuclear masks alone were enough to detect cancer was a really exciting discovery for us. 
+</p>
+
+<h2 class="blog-post">Dropping the mask and fighting the loss</h2>
+
+<p class="blog-post">
+  As great as the masks were, I wanted to take it a step further. Running a segmentation model during inference is cumbersome and prone to errors in a deployed pipeline. I wanted a system that only needed the masks during <em>training</em>, but could look at a normal H&amp;E image during inference.
+</p>
+
+<p class="blog-post">
+  I tried a bunch of things, but what finally worked was a simple Mean Squared Error (MSE) loss. By reducing the distance between the embeddings of the mask and the original image, the model learned to focus purely on the nuclei. It generalised incredibly well, though we did sacrifice a tiny bit of in-domain performance.
+</p>
+
+<p class="blog-post">
+  But training was incredibly unstable. The model's performance would sit at zero for many epochs, and then suddenly shoot up and learn. I thought maybe asking the model to match the MSE directly was too difficult, so I introduced a trick: multiplying the mask with the image so the model saw a bridged version of the two. It didn't work great at first, but my supervisor suggested putting that augmentation on the other branch of the network. That helped stabilise things!
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/shape-based-feature-learning/method.png" alt="The proposed training method, with an image branch and a nuclear-mask branch passing through a shared ResNet-50, classification losses on both branches, and a feature-alignment loss between them.">
+  <figcaption>Two inputs during training; one ordinary image at inference.</figcaption>
+</figure>
+
+<p class="blog-post">
+  Still, it wasn't good. I decided to try geometrical augmentations like horizontal and vertical flips. My supervisor was skeptical—based on his experience, tissue doesn't have a natural "upright" orientation in the way a photograph of an animal does, so he thought geometrical augmentation wouldn't help much. I tried it anyway, and it worked! The flips finally stabilised the training for good.
+</p>
+
+
+<h2 class="blog-post">Testing whether it travelled</h2>
+
+<p class="blog-post">
+  To see if this actually worked, we trained our models on one medical centre (from the CAMELYON17 dataset) and tested them on four unseen centres. We also evaluated the final models on entirely different external datasets: BCSS (primary breast cancer) and OCELOT (tumours from six different organs). 
+</p>
+
+<p class="blog-post">
+  The short version is that it worked beautifully. Even against the strongest general domain-generalisation baselines we tested (like L2D), our method generalised much better across all the datasets. We found that ordinary colour augmentations still help, but explicitly teaching the model to focus on biological structure solved a completely different part of the problem. 
+</p>
+
+<p class="blog-post">
+  I've put the condensed results in the chart below, but if you want to dig into the exact accuracy percentages, you can find the full tables in the actual paper!
+</p>
+
+<div
+  class="article-table-scroll"
+  role="region"
+  aria-label="Headline out-of-domain accuracy results"
+  tabindex="0"
+  >
+  <table class="article-table">
+    <caption>
+      Average out-of-domain tile-classification accuracy (%),
+      reported as mean ± standard deviation.
+    </caption>
+
+    <thead>
+      <tr>
+        <th scope="col">Method</th>
+        <th scope="col">CAMELYON17</th>
+        <th scope="col">BCSS</th>
+        <th scope="col">OCELOT</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <th scope="row">ERM-Aug</th>
+        <td>
+          85.5
+          <span class="table-uncertainty">± 1.8</span>
+        </td>
+        <td>
+          71.7
+          <span class="table-uncertainty">± 2.3</span>
+        </td>
+        <td>
+          65.6
+          <span class="table-uncertainty">± 2.1</span>
+        </td>
+      </tr>
+
+      <tr>
+        <th scope="row">L2D-Aug</th>
+        <td>
+          89.1
+          <span class="table-uncertainty">± 1.1</span>
+        </td>
+        <td>
+          75.1
+          <span class="table-uncertainty">± 1.3</span>
+        </td>
+        <td>
+          69.1
+          <span class="table-uncertainty">± 1.1</span>
+        </td>
+      </tr>
+
+      <tr class="article-table-best">
+        <th scope="row">Ours-Aug</th>
+        <td>
+          <strong>91.8</strong>
+          <span class="table-uncertainty">± 0.9</span>
+        </td>
+        <td>
+          <strong>78.8</strong>
+          <span class="table-uncertainty">± 1.6</span>
+        </td>
+        <td>
+          <strong>70.6</strong>
+          <span class="table-uncertainty">± 1.0</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="blog-post">The NeurIPS push and a lucky misunderstanding</h2>
+
+<p class="blog-post">
+  I thought the paper was finally ready, but my second supervisor, Alex, told me that for a NeurIPS submission, we needed to show more than just improved generalisation.
+</p>
+
+<p class="blog-post">
+  We tested against some corruptions, but Alex also wanted to see adversarial robustness and "cross-model" robustness. Here's where a funny story happened. Alex meant cross-architecture robustness (like transferring attacks from a ViT to a CNN). I completely misunderstood him and did cross-<em>method</em> robustness, testing adversarial attacks generated against our method on other baseline methods, and vice versa.
+</p>
+
+<p class="blog-post">
+  That misunderstanding led to one of my favourite result in the whole paper. It showed that adversarial attacks developed to fool our model easily fooled other models, but attacks developed on other models completely failed against ours. Because our model had learned to ignore everything except the nuclei, it simply didn't care about the attacks unless they specifically targeted nuclear pixels!
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/shape-based-feature-learning/cross-model-attacks.png" alt="Direct and transferred PGD attack results. The proposed models remain much more accurate under attacks generated using ERM and L2D models.">
+  <figcaption>Left: direct PGD attacks. Right: attacks generated with one method and tested on another.</figcaption>
+</figure>
+
+<p class="blog-post">
+  Finally, during the review process, a reviewer requested more evidence that our model was actually looking at nuclei even though we already had a lot of ablations in the paper to show exactly that (I think Alex had pushed me to include those). We happily obliged, adding a Integrated Gradients as an explainability method.
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/shape-based-feature-learning/saliency-comparison.png" alt="Matched Integrated Gradients examples comparing an ordinary augmented model with the proposed nuclear-guided model.">
+  <figcaption>A small matched selection from the paper’s Integrated Gradients figures. The controlled ablations are stronger evidence; the maps provide a useful visual check.</figcaption>
+</figure>
+
+<h2 class="blog-post">Paper and resources</h2>
+
+<ul class="blog-post">
+  <li><a href="/research/shape-based-feature-learning/">Research overview, results, citation, and BibTeX</a></li>
+  <li><a href="https://proceedings.neurips.cc/paper_files/paper/2024/hash/4cc4cc789849230a4f495a2060b45c87-Abstract-Conference.html" target="_blank" rel="noopener noreferrer">NeurIPS paper</a></li>
+  <li><a href="https://github.com/undercutspiky/SFL" target="_blank" rel="noopener noreferrer">Code</a></li>
+  <li><a href="https://www.youtube.com/watch?v=zalQrK5p7x8" target="_blank" rel="noopener noreferrer">Video explanation</a></li>
+  <li><a href="https://doi.org/10.18710/NXPLFL" target="_blank" rel="noopener noreferrer">Processed CAMELYON17 data</a></li>
+</ul>

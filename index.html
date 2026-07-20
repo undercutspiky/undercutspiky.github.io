@@ -45,9 +45,10 @@ image: /assets/images/logo2.jpg
           <span class="research-badge {{ badge_class }}">{{ item.status }}</span>
           {% endif %}
           {% if item.venue %}<span class="research-card-venue">{{ item.venue }}</span>{% endif %}
+          {% if item.year %}<span class="research-card-year">{{ item.year }}</span>{% endif %}
         </div>
         <h3 class="research-featured-card-title">
-          <a href="{{ item.url | relative_url }}" class="research-featured-card-title-link">{{ item.title }}</a>
+          <a href="{{ item.url | relative_url }}" class="research-featured-card-title-link">{{ item.short_title | default: item.title }}</a>
         </h3>
         {% if item.summary %}
         <p class="research-featured-card-summary">{{ item.summary }}</p>

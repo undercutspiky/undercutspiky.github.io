@@ -24,7 +24,7 @@
       {% if item.year %}<span class="research-card-year">{{ item.year }}</span>{% endif %}
     </div>
     <h3 class="research-card-title">
-      <a href="{{ item.url | relative_url }}" class="research-card-title-link">{{ item.title }}</a>
+      <a href="{{ item.url | relative_url }}" class="research-card-title-link">{{ item.short_title | default: item.title }}</a>
     </h3>
     {% if item.summary %}
     <p class="research-card-summary">{{ item.summary }}</p>
