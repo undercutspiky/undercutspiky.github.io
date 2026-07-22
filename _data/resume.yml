@@ -1,0 +1,184 @@
+profile:
+  name: "Dhananjay Tomar"
+  role: "Deep Learning researcher"
+  location: "Oslo, Norway"
+  affiliation: "ICGI · Oslo University Hospital"
+  eyebrow: "Deep Learning · Robustness · Efficiency . Histopathology"
+  headline: "I build robust and efficient deep-learning systems for real-world data."
+  summary: >-
+    I am a researcher at the Institute for Cancer Genetics and Informatics (ICGI),
+    Oslo University Hospital (OUS), and a PhD candidate at the University of Oslo (UiO). My work spans
+    computer vision and histopathology, with a focus on robustness, efficiency,
+    and the training dynamics of neural networks.
+  interests:
+    - "Robustness"
+    - "Efficient deep learning"
+    - "Computational pathology"
+    - "Continual learning"
+  links:
+    - label: "Email"
+      url: "mailto:undercutspiky@yahoo.co.in"
+    - label: "Google Scholar"
+      url: "https://scholar.google.com/citations?user=VEGYe_UAAAAJ&hl=en"
+    - label: "GitHub"
+      url: "https://github.com/undercutspiky"
+    - label: "LinkedIn"
+      url: "https://www.linkedin.com/in/djay-tomar/"
+
+sections:
+  - label: "Experience"
+    anchor: "experience"
+  - label: "Research"
+    anchor: "research"
+  - label: "Patent & service"
+    anchor: "recognition"
+  - label: "Education"
+    anchor: "education"
+  - label: "Writing"
+    anchor: "writing"
+
+experience:
+  - period: "Oct 2025 — Present"
+    role: "Scientific Developer"
+    role_note: "research role"
+    organisation: "ICGI"
+    organisation_detail: "Oslo University Hospital"
+    organisation_url: "https://icgi.no/"
+    summary: >-
+      Researching cancer-survival prediction, including a label-denoising method and methods
+      for making models more robust to scanner differences.
+    links:
+      - label: "About ICGI"
+        url: "https://icgi.no/"
+
+  - period: "Oct 2021 — Present"
+    role: "PhD Candidate"
+    organisation: "University of Oslo"
+    organisation_url: "https://www.mn.uio.no/ifi/english/people/aca/dhananjt/"
+    summary: >-
+      Researching robust and efficient computational pathology, including NeurIPS 2024
+      work on nuclear-shape-guided learning; two additional manuscripts are under review.
+    detail: >-
+      I co-supervised two master's students and, for nearly four years, taught the course 
+      Deep Learning for Image Analysis, where I lectured, designed mandatory assignments, 
+      contributed to exams and marking, supported students, and helped run the course.
+    links:
+      - label: "NeurIPS 2024 story"
+        url: "/2026/07/19/nuclear-masks-and-domain-generalisation.html"
+        internal: true
+      - label: "NeurIPS paper"
+        url: "https://arxiv.org/abs/2411.09373"
+      - label: "Research page"
+        url: "/research/shape-based-feature-learning/"
+        internal: true
+
+  - period: "Jan 2018 — Sep 2021"
+    role: "Machine Learning Developer"
+    organisation: "SAP"
+    organisation_url: "https://help.sap.com/docs/document-ai/sap-document-ai/what-is-sap-document-ai"
+    summary: >-
+      Designed major components of the Document Information Processing service that processed over a 
+      million financial documents per month. My work spanned the full spectrum of applied ML—from 
+      delivering a successful accruals automation POC to developing production algorithms and patenting 
+      a novel synthetic data generation method.
+    links:
+      - label: "SAP Document AI"
+        url: "https://help.sap.com/docs/document-ai/sap-document-ai/what-is-sap-document-ai?locale=en-US"
+      - label: "Patent"
+        url: "https://patents.google.com/patent/US20230334309A1/en"
+
+research:
+  - year: "2024"
+    status: "Published"
+    type: "NeurIPS 2024"
+    title: "Are nuclear masks all you need for improved out-of-domain generalisation?"
+    summary: >-
+      Uses nuclear masks during training to steer a cancer classifier toward nuclear shape and
+      organisation, while requiring only the original image at inference; improves transfer
+      across hospitals and robustness to corruptions and adversarial attacks.
+    links:
+      - label: "Story"
+        url: "/2026/07/19/nuclear-masks-and-domain-generalisation.html"
+        internal: true
+      - label: "Paper"
+        url: "https://arxiv.org/abs/2411.09373"
+      - label: "Code"
+        url: "https://github.com/undercutspiky/SFL"
+      - label: "Talk"
+        url: "https://www.youtube.com/watch?v=URq3nibZ4Ts"
+
+  - year: "2017"
+    status: "Thesis"
+    type: "MSc thesis · IDSIA / USI"
+    title: "Curriculum learning and neural-network training dynamics"
+    summary: >-
+      Tracked examples through training using time-to-learn, loss changes, and computation
+      selected by Highway Network gates. The experiments exposed multiple notions of
+      difficulty and showed that a batch's effect changes with the model's training state.
+    links:
+      - label: "Project story"
+        url: "/research/curriculum-learning-anns/"
+        internal: true
+      - label: "Full thesis"
+        url: "https://doi.org/10.5281/zenodo.21500749"
+      - label: "Code"
+        url: "https://github.com/undercutspiky/ACL"
+
+  - year: "2017"
+    status: "Poster"
+    type: "PASC17"
+    title: "Pruning Highway Networks for reducing memory usage"
+    summary: >-
+      Turned transform gates into pruning signals, reducing a CIFAR-10 Highway Network from
+      34 MB to 5.2 MB—about 85% smaller—with a 1.72 percentage-point accuracy drop.
+    links:
+      - label: "Poster"
+        url: "https://pasc17.org/fileadmin/user_upload/pasc17/program/post155s2.pdf"
+      - label: "Code & report"
+        url: "https://github.com/undercutspiky/CHN"
+
+  - year: "2017"
+    status: "Published"
+    type: "IEEE conference paper"
+    title: "Feature Selection Using Autoencoders"
+    summary: >-
+      Introduced a feature-selection method that filters uninformative inputs by 
+      tracing high-variance connections backwards through an autoencoder; 
+      evaluated on five public datasets, including 59% pixel removal on MNIST with 
+      roughly a 1% accuracy loss.
+    links:
+      - label: "IEEE Xplore"
+        url: "https://ieeexplore.ieee.org/document/8320259"
+      - label: "DOI"
+        url: "https://doi.org/10.1109/MLDS.2017.20"
+
+recognition:
+  - eyebrow: "Reviewing"
+    title: "NeurIPS 2025 Top Reviewer Award"
+    text: "Recognized as a Top Reviewer (Top 10%) for delivering high-quality, timely paper evaluations."
+    url: "https://neurips.cc/Conferences/2025/ProgramCommittee#top-reviewer"
+    link_label: "Official Top Reviewer List"
+
+  - eyebrow: "Patent · US 20230334309 A1"
+    title: "Synthetic training data for document extraction"
+    text: >-
+      Conceived the core idea for a synthetic training-data generation method that applies macro and micro 
+      augmentations to electronic-document templates, generating new documents for training ML models.
+    url: "https://patents.google.com/patent/US20230334309A1/en"
+    link_label: "View patent"
+
+education:
+  - period: "2021 — Present"
+    degree: "PhD in Informatics"
+    institution: "University of Oslo"
+    detail: "Robust and efficient deep learning for computational pathology."
+
+  - period: "2015 — 2017"
+    degree: "MSc in Informatics"
+    institution: "Università della Svizzera italiana"
+    detail: "Master's thesis at IDSIA on curriculum learning and training dynamics."
+
+  - period: "2011 — 2015"
+    degree: "BTech in Computer Science and Engineering"
+    institution: "Jaypee Institute of Information Technology"
+    detail: "Major project on neural-network-based feature selection."

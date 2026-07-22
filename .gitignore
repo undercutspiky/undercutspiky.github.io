@@ -4,3 +4,6 @@ _site
 .DS_Store
 tmp
 dist/
+
+# Private source material — never publish the résumé PDF
+assets/files/Dhananjay_Tomar_Resume.pdf

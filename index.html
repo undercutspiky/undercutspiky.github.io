@@ -1,87 +1,333 @@
 ---
 permalink: /
 layout: default
-title: Dhananjay's Home
+title: Dhananjay Tomar — Deep Learning Researcher
+description: Dhananjay Tomar is a deep-learning researcher and scientific developer working on robust AI, computational pathology, and efficient model training.
 image: /assets/images/logo2.jpg
 ---
-<section class="hero" aria-label="Site introduction">
-  <div class="hero-inner">
-    <p class="hero-label">Deep Learning &middot; Robustness &middot; Efficiency</p>
-    <h1 class="hero-title">I study how neural networks learn, generalise, and scale.</h1>
-    <p class="hero-tagline">
-      I'm Dhananjay Tomar, a deep-learning researcher working on robust
-      representation learning and efficient model design. I study how models
-      can generalise across domains, process inputs too large for GPU memory,
-      and remove redundant computation—often through challenging problems in
-      computer vision and computational pathology.
-    </p>
-    <div class="hero-cta-group">
-      <a href="/research" class="hero-cta">Explore my research</a>
-      <a href="/about" class="hero-cta-secondary">About me</a>
+
+{% assign resume = site.data.resume %}
+
+<div class="resume-home resume-home-compact">
+  <section class="resume-hero" aria-labelledby="resume-hero-title">
+    <div class="resume-hero-inner">
+      <div class="resume-hero-titleblock">
+        <p class="resume-eyebrow">{{ resume.profile.eyebrow }}</p>
+        <h1 class="resume-name" id="resume-hero-title">{{ resume.profile.name }}</h1>
+        <p class="resume-headline">{{ resume.profile.headline }}</p>
+      </div>
+
+      <div class="resume-hero-copy">
+        <p class="resume-intro">{{ resume.profile.summary }}</p>
+        <p class="resume-current-line">
+          <span class="resume-live-dot" aria-hidden="true"></span>
+          <span>{{ resume.profile.role }}</span>
+          <span aria-hidden="true">·</span>
+          <span>{{ resume.profile.location }}</span>
+        </p>
+
+        <ul class="resume-profile-links" aria-label="Profile links">
+          {% for link in resume.profile.links %}
+            <li>
+              <a href="{{ link.url }}"{% unless link.url contains 'mailto:' %} target="_blank" rel="noopener noreferrer"{% endunless %}>
+                {{ link.label }}{% unless link.url contains 'mailto:' %}<span aria-hidden="true"> ↗</span>{% endunless %}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-{% assign featured_research = site.research | where_exp: "item", "item.draft != true" | where: "featured", true | sort: "date" | reverse %}
-{% if featured_research.size > 0 %}
-<section class="featured-research" aria-labelledby="featured-research-heading">
-  <h2 class="section-heading" id="featured-research-heading">Featured Research</h2>
-  <div class="research-featured-grid">
-    {% for item in featured_research limit:2 %}
-    <article class="research-featured-card">
-      {% if item.image %}
-      <a href="{{ item.url | relative_url }}" class="research-featured-card-img-wrap" tabindex="-1" aria-hidden="true">
-        <img src="{{ item.image }}" alt="{{ item.image_alt | default: '' }}" loading="lazy">
-      </a>
-      {% endif %}
-      <div class="research-featured-card-body">
-        <div class="research-featured-card-meta">
-          {% if item.status %}
-          {% assign badge_class = "research-badge-project" %}
-          {% if item.status == "Published" %}{% assign badge_class = "research-badge-published" %}
-          {% elsif item.status == "Preprint" %}{% assign badge_class = "research-badge-preprint" %}
-          {% elsif item.status == "Ongoing" %}{% assign badge_class = "research-badge-ongoing" %}
-          {% endif %}
-          <span class="research-badge {{ badge_class }}">{{ item.status }}</span>
-          {% endif %}
-          {% if item.venue %}<span class="research-card-venue">{{ item.venue }}</span>{% endif %}
-          {% if item.year %}<span class="research-card-year">{{ item.year }}</span>{% endif %}
-        </div>
-        <h3 class="research-featured-card-title">
-          <a href="{{ item.url | relative_url }}" class="research-featured-card-title-link">{{ item.short_title | default: item.title }}</a>
-        </h3>
-        {% if item.summary %}
-        <p class="research-featured-card-summary">{{ item.summary }}</p>
-        {% endif %}
-        <a href="{{ item.url | relative_url }}" class="research-featured-card-read">View project &rarr;</a>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
+  <div class="resume-shell">
+    <aside class="resume-rail" aria-label="Résumé navigation and research interests">
+      <div class="resume-rail-sticky">
+        <p class="resume-rail-label">On this page</p>
+        <nav class="resume-section-nav" aria-label="Résumé sections">
+          <ul>
+            {% for section in resume.sections %}
+              <li>
+                <a href="#{{ section.anchor }}" data-resume-nav="{{ section.anchor }}">
+                  <span class="resume-nav-rule" aria-hidden="true"></span>
+                  <span>{{ section.label }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
 
-<section class="latest-posts" aria-labelledby="latest-heading">
-  <h2 class="section-heading" id="latest-heading">Latest Writing</h2>
-  <div class="post-grid">
-    {% for post in site.posts limit:3 %}
-    <article class="post-card">
-      <a href="{{ post.url }}" class="post-card-img-link" tabindex="-1" aria-hidden="true">
-        <div class="post-card-img-wrap">
-          <img src="{{ post.image }}" alt="" loading="lazy" class="post-card-img">
+        <div class="resume-focus-block">
+          <p class="resume-rail-label">Research interests</p>
+          <ul class="resume-focus-list">
+            {% for interest in resume.profile.interests %}
+              <li>{{ interest }}</li>
+            {% endfor %}
+          </ul>
         </div>
-      </a>
-      <div class="post-card-body">
-        <time class="post-card-date" datetime="{{ post.date | date_to_xmlschema }}">
-          {{ post.date | date: '%b %d, %Y' }}
-        </time>
-        <h3 class="post-card-title">
-          <a href="{{ post.url }}" class="post-card-title-link">{{ post.title }}</a>
-        </h3>
-        <p class="post-card-desc">{{ post.description }}</p>
-        <a href="{{ post.url }}" class="post-card-read">Read &rarr;</a>
+
+        <p class="resume-affiliation">
+          {{ resume.profile.affiliation }}<br>
+          {{ resume.profile.location }}
+        </p>
       </div>
-    </article>
-    {% endfor %}
+    </aside>
+
+    <main class="resume-main">
+      <section class="resume-section" data-resume-section id="experience" aria-labelledby="experience-heading">
+        <header class="resume-section-header">
+          <span class="resume-section-number" aria-hidden="true">01</span>
+          <div>
+            <h2 id="experience-heading">Experience</h2>
+            <p>Research, teaching, and production machine learning.</p>
+          </div>
+        </header>
+
+        <div class="resume-timeline resume-experience-timeline">
+          {% for item in resume.experience %}
+            <article class="resume-timeline-item">
+              <p class="resume-period">{{ item.period }}</p>
+              <div class="resume-timeline-card">
+                <div class="resume-card-heading">
+                  <h3>
+                    {{ item.role }}
+                    {% if item.role_note %}<span class="resume-role-note">({{ item.role_note }})</span>{% endif %}
+                    <span class="resume-at">@</span>
+                    <a href="{{ item.organisation_url }}" target="_blank" rel="noopener noreferrer">
+                      {{ item.organisation }} <span aria-hidden="true">↗</span>
+                    </a>
+                  </h3>
+                  {% if item.organisation_detail %}
+                    <p class="resume-organisation-detail">{{ item.organisation_detail }}</p>
+                  {% endif %}
+                </div>
+                <p class="resume-card-summary">{{ item.summary }}</p>
+                {% if item.detail %}<p class="resume-card-detail">{{ item.detail }}</p>{% endif %}
+
+                {% if item.links %}
+                  <ul class="resume-inline-links" aria-label="Links for {{ item.role }} at {{ item.organisation }}">
+                    {% for link in item.links %}
+                      <li>
+                        {% if link.internal %}
+                          <a href="{{ link.url | relative_url }}">{{ link.label }} <span aria-hidden="true">→</span></a>
+                        {% else %}
+                          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }} <span aria-hidden="true">↗</span></a>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="resume-section" data-resume-section id="research" aria-labelledby="research-heading">
+        <header class="resume-section-header">
+          <span class="resume-section-number" aria-hidden="true">02</span>
+          <div>
+            <h2 id="research-heading">Selected research</h2>
+            <p>Published work and earlier projects; manuscripts under review stay anonymous here.</p>
+          </div>
+        </header>
+
+        <div class="resume-timeline resume-research-timeline">
+          {% for item in resume.research %}
+            {% assign status_class = item.status | downcase | replace: ' ', '-' %}
+            <article class="resume-timeline-item">
+              <p class="resume-period">{{ item.year }}</p>
+              <div class="resume-timeline-card resume-research-card">
+                <div class="resume-research-meta">
+                  <span class="resume-status resume-status-{{ status_class }}">{{ item.status }}</span>
+                  <span>{{ item.type }}</span>
+                </div>
+                <h3 class="resume-research-title">{{ item.title }}</h3>
+                <p class="resume-card-summary">{{ item.summary }}</p>
+
+                {% if item.links %}
+                  <ul class="resume-inline-links" aria-label="Links for {{ item.title }}">
+                    {% for link in item.links %}
+                      <li>
+                        {% if link.internal %}
+                          <a href="{{ link.url | relative_url }}">{{ link.label }} <span aria-hidden="true">→</span></a>
+                        {% else %}
+                          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }} <span aria-hidden="true">↗</span></a>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <p class="resume-section-link">
+          <a href="{{ '/research/' | relative_url }}">Browse the full research page <span aria-hidden="true">→</span></a>
+        </p>
+      </section>
+
+      <section class="resume-section" data-resume-section id="recognition" aria-labelledby="recognition-heading">
+        <header class="resume-section-header">
+          <span class="resume-section-number" aria-hidden="true">03</span>
+          <div>
+            <h2 id="recognition-heading">Patent &amp; service</h2>
+            <p>Selected contributions beyond the main publication list.</p>
+          </div>
+        </header>
+
+        <div class="resume-recognition-grid">
+          {% for item in resume.recognition %}
+            <article class="resume-recognition-card">
+              <p class="resume-recognition-eyebrow">{{ item.eyebrow }}</p>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.text }}</p>
+              <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+                {{ item.link_label }} <span aria-hidden="true">↗</span>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="resume-section" data-resume-section id="education" aria-labelledby="education-heading">
+        <header class="resume-section-header">
+          <span class="resume-section-number" aria-hidden="true">04</span>
+          <div>
+            <h2 id="education-heading">Education</h2>
+            <p>Formal training across India, Switzerland, and Norway.</p>
+          </div>
+        </header>
+
+        <div class="resume-education-list">
+          {% for item in resume.education %}
+            <article class="resume-education-item">
+              <p class="resume-period">{{ item.period }}</p>
+              <div>
+                <h3>{{ item.degree }}</h3>
+                <p class="resume-education-institution">{{ item.institution }}</p>
+                <p class="resume-card-summary">{{ item.detail }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="resume-section" data-resume-section id="writing" aria-labelledby="writing-heading">
+        <header class="resume-section-header">
+          <span class="resume-section-number" aria-hidden="true">05</span>
+          <div>
+            <h2 id="writing-heading">Latest writing</h2>
+            <p>Research stories, paper walkthroughs, and notes.</p>
+          </div>
+        </header>
+
+        <div class="resume-writing-list">
+          {% for post in site.posts limit:3 %}
+            <article class="resume-writing-item">
+              <p class="resume-writing-date">{{ post.date | date: '%b %d, %Y' }}</p>
+              <div>
+                <h3><a href="{{ post.url | relative_url }}">{{ post.title }} <span aria-hidden="true">→</span></a></h3>
+                {% if post.description %}
+                  <p>{{ post.description }}</p>
+                {% else %}
+                  <p>{{ post.excerpt | strip_html | strip_newlines | truncate: 150 }}</p>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <p class="resume-section-link">
+          <a href="{{ '/blog/' | relative_url }}">Read all writing <span aria-hidden="true">→</span></a>
+        </p>
+      </section>
+
+      <section class="resume-contact" aria-labelledby="resume-contact-heading">
+        <div>
+          <p class="resume-contact-kicker">Research, collaboration, or a good paper recommendation</p>
+          <h2 id="resume-contact-heading">Let's talk.</h2>
+        </div>
+        <a class="hero-cta" href="mailto:undercutspiky@yahoo.co.in?subject=Hello%20Dhananjay">Email Dhananjay</a>
+      </section>
+    </main>
   </div>
-</section>
+</div>
+
+<script>
+  (() => {
+    const links = Array.from(document.querySelectorAll('[data-resume-nav]'));
+    const sections = links
+      .map((link) => document.getElementById(link.dataset.resumeNav))
+      .filter(Boolean);
+
+    if (!links.length || !sections.length) return;
+
+    const sectionNav = document.querySelector('.resume-section-nav');
+    let activeId = '';
+    let ticking = false;
+
+    const setActive = (id, keepVisible = true) => {
+      if (!id || id === activeId) return;
+      activeId = id;
+
+      links.forEach((link) => {
+        const isActive = link.dataset.resumeNav === id;
+        link.classList.toggle('is-active', isActive);
+        if (isActive) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+
+      if (keepVisible && sectionNav && window.matchMedia('(max-width: 999px)').matches) {
+        const activeLink = links.find((link) => link.dataset.resumeNav === id);
+        if (activeLink) {
+          const targetLeft = activeLink.offsetLeft - (sectionNav.clientWidth - activeLink.offsetWidth) / 2;
+          sectionNav.scrollTo({
+            left: Math.max(0, targetLeft),
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+          });
+        }
+      }
+    };
+
+    const updateActiveSection = () => {
+      ticking = false;
+      const navHeight = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--nav-h')
+      ) || 72;
+      const activationLine = navHeight + Math.min(window.innerHeight * 0.22, 160);
+      let current = sections[0].id;
+
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= activationLine) {
+          current = section.id;
+        } else {
+          break;
+        }
+      }
+
+      const atPageEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if (atPageEnd) current = sections[sections.length - 1].id;
+
+      setActive(current);
+    };
+
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateActiveSection);
+    };
+
+    links.forEach((link) => {
+      link.addEventListener('click', () => setActive(link.dataset.resumeNav, false));
+    });
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('hashchange', requestUpdate);
+    requestUpdate();
+  })();
+</script>

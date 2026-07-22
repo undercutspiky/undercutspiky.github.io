@@ -42,7 +42,7 @@
     {% endif %}
     {% if has_links %}
     <div class="research-card-links">
-      {% if item.paper_url %}<a href="{{ item.paper_url }}" class="research-link-btn" target="_blank" rel="noopener">Paper</a>{% endif %}
+      {% if item.paper_url %}<a href="{{ item.paper_url }}" class="research-link-btn" target="_blank" rel="noopener">{% if item.status == "Thesis" %}Thesis{% else %}Paper{% endif %}</a>{% endif %}
       {% if item.preprint_url %}<a href="{{ item.preprint_url }}" class="research-link-btn" target="_blank" rel="noopener">Preprint</a>{% endif %}
       {% if item.code_url %}<a href="{{ item.code_url }}" class="research-link-btn" target="_blank" rel="noopener">Code</a>{% endif %}
       {% if item.project_url %}<a href="{{ item.project_url }}" class="research-link-btn" target="_blank" rel="noopener">Project</a>{% endif %}
