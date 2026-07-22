@@ -1,0 +1,559 @@
+---
+layout: research_item
+title: "What Neural Networks Reveal While They Learn"
+short_title: "Curriculum Learning & Training Dynamics"
+slug: curriculum-learning-anns
+year: 2017
+date: 2017-06-30
+venue: "Master's Thesis (IDSIA / USI)"
+status: Thesis
+authors:
+  - "Dhananjay Tomar"
+role: "Sole author"
+featured: true
+draft: false
+image: /assets/images/research/curriculum-learning/figure-4-1.png
+image_alt: "Adding Gaussian noise to CIFAR-10 images causes Highway Networks to open their transform gates more, showing that the network learns to allocate more computation to more difficult samples.
+            The blue curve is the clean input; green, red, and yellow add progressively more Gaussian noise."
+tags:
+  - curriculum learning
+  - training dynamics
+  - highway networks
+  - data selection
+code_url: https://github.com/undercutspiky/ACL
+paper_url: "https://doi.org/10.5281/zenodo.21500749"
+citation: "Tomar, D. (2017). Curriculum Learning for Artificial Neural Networks: Understanding the training phase of ANNs for curriculum learning. Master's Thesis, Università della Svizzera Italiana."
+summary: >-
+  A 2017 study of individual-example and mini-batch dynamics during neural-network training:
+  how quickly examples are learned, how their losses move across epochs, how Highway Networks
+  allocate gated computation, and why apparently sensible curricula can still lose to random shuffling.
+contributions:
+  - "Defined complementary notions of example difficulty based on time-to-learn and gated computation, and tested whether they were stable across runs and architectures."
+  - "Found a recurring cross-epoch loss pattern: examples whose loss had risen tended to receive the largest loss decrease in the next epoch."
+  - "Showed that greedily training only on those apparently useful examples caused competing groups and class imbalance, erasing the expected gain."
+  - "Mapped batch-to-batch effects and found that they were organised more strongly by the model's current training state than by a stable identity of the batch."
+  - "The gated-computation experiments directly motivated a later PASC17 project that pruned 85% of a Highway Network with a 1.72 percentage-point accuracy drop."
+---
+
+<div class="thesis-note">
+  <p>
+    <strong>A quick note from the author:</strong> I wrote <a href="https://doi.org/10.5281/zenodo.21500749" target="_blank" rel="noopener noreferrer"> this Master's thesis </a>
+    in 2017 and never turned it into a paper. That still feels like a missed opportunity, because several questions I was chasing—tracking individual examples across epochs, 
+    using training trajectories to diagnose difficulty, and deciding which examples matter at a particular point in training—became major research themes soon afterward. 
+    The later papers used different definitions, broader experiments, and much stronger validation; I am not claiming they are the same work. But the conceptual overlap is 
+    real, especially around example forgetting, and it is hard not to wonder what another few months of experiments might have produced.
+  </p>
+</div>
+
+<!-- <p class="blog-post">
+  The original goal was ambitious: design an <em>automatic</em>, task-agnostic curriculum for a neural
+  network. Instead of hand-labelling examples as easy or hard, I wanted the network's own behaviour
+  to tell us what it should learn next. The thesis therefore asked a more fundamental question first:
+  <strong>what does “difficulty” mean to a neural network, and does that meaning remain stable while the
+  model changes?</strong><span class="ref" data-text="D. Tomar, Curriculum Learning for Artificial Neural Networks, MSc thesis, 2017.">[1]</span>
+</p>
+<h2 class="blog-post">The quest for an explainable curriculum</h2> -->
+
+<p class="blog-post">
+  The original goal was ambitious. I wanted to design a curriculum learning strategy for an NLP task, but as the project evolved, we pivoted to computer vision and CIFAR-10. 
+  My supervisor, Klaus Greff at IDSIA, had a clear philosophical vision: we needed an <em>automated</em> curriculum, but we also needed to know <em>why</em> it worked. 
+</p>
+
+<p class="blog-post">
+  We could, for example, have tried to develop a Reinforcement Learning agent to arbitrarily pull examples for the network-which some labs did later-but that creates a black box. 
+  If we instead managed to dynamically sort the dataset into "difficult" and "easy" bins based on well-defined mathematical criteria, we would actually understand the 
+  fundamental learning process.
+</p>
+
+<!-- <div class="thesis-reading-guide">
+  <p><strong>Where to look in the thesis</strong> <span aria-hidden="true">(printed page numbers)</span></p>
+  <ul>
+    <li><strong>§4.1.1, pp. 24-32:</strong> transform-gate activity as a resource-based notion of difficulty.</li>
+    <li><strong>§4.1.2, pp. 32-36:</strong> time-to-learn and agreement across Highway and All-Conv networks.</li>
+    <li><strong>§4.2.2 and Figs. 4.12-4.15, pp. 40-44:</strong> cross-epoch loss changes and the failed greedy curriculum.</li>
+    <li><strong>§4.3 and Figs. 4.16-4.18, pp. 41-50:</strong> the “ecology” of how mini-batches affect one another.</li>
+    <li><strong>Chs. 5-6, pp. 51-55:</strong> the negative results, limitations, and future directions.</li>
+  </ul>
+</div> -->
+
+
+<h2 class="blog-post">Idea 1: The Loss-Drop Cycle (Usefulness vs. Difficulty)</h2>
+
+<div class="thesis-reading-guide">
+  <p><strong>Where to look in the thesis</strong> <span aria-hidden="true">(printed page numbers)</span></p>
+  <ul>
+    <li><strong>§4.2.2 and Figs. 4.12-4.15, pp. 40-44:</strong> cross-epoch loss changes and the failed greedy curriculum.</li>
+  </ul>
+</div>
+
+<p class="blog-post">
+  My very first idea was simple: high loss equals high difficulty. But difficulty is not the same thing as usefulness. 
+  To ask which examples were actually <em>helping</em> at a particular moment, I tracked each example's loss-drop: 
+  how much its loss changed from one epoch to the next. 
+</p>
+
+<p class="blog-post">
+  I discovered a fascinating cycle. Consecutive epochs were usually negatively correlated. Examples whose loss had 
+  risen tended to receive a massive decrease in the following epoch; examples that had just received a large decrease 
+  tended to flatten out. 
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/curriculum-learning/figure-4-14.png" alt="The same highlighted training examples moving through negative, positive, and near-zero loss changes across epochs." loading="lazy">
+  <figcaption>Figure 4.14: The examples with the largest positive loss-drop in one epoch mostly came from the negative-loss-drop region in the preceding epoch, then moved close to zero.</figcaption>
+</figure>
+
+<p class="blog-post">
+  Because we couldn't find any group of examples that <em>stayed</em> difficult, I initially moved on to other ideas. 
+  It was only much later, while actually writing the thesis, that I realized we could still exploit this knowledge to 
+  design a curriculum. I ran a greedy experiment: select the examples whose loss had just increased, because they were 
+  likely to improve most next. 
+</p>
+
+<p class="blog-post">
+  The experiment failed. Training only on that set made other examples worse; two competing groups effectively traded 
+  loss back and forth. Selecting 10,000, 20,000, or 30,000 examples prevented convergence; selecting 40,000 converged 
+  but still underperformed training on all 50,000. Stratified sampling repaired the class imbalance (easy samples 
+  came from a few classes), but only recovered the random baseline rather than beating it.<span class="ref" data-text="Thesis Experiment 4.6 and Fig. 4.15 show competing example groups and the failure of the greedy loss-drop curriculum.">[1]</span>
+  An example can be useful even when its own loss is not about to fall, because its gradient may protect or improve other examples. 
+</p>
+
+
+
+
+
+
+<!-- <h2 class="blog-post">Lens 1: how much computation does an example activate?</h2>
+
+<p class="blog-post">
+  Highway Networks contain transform gates. A gate near one uses more of the learned transform;
+  a gate near zero carries more of the input forward unchanged. I treated the sum of these gate
+  outputs as a rough measure of the computation allocated to an example. This gave a model-derived
+  difficulty score rather than a human annotation.<span class="ref" data-text="Thesis §4.1.1 defines resource-based difficulty as the sum of transform-gate outputs during the forward pass.">[1]</span>
+</p>
+
+<p class="blog-post">
+  To test whether that score meant anything, I added increasing amounts of Gaussian noise to CIFAR-10
+  images. For networks trained with noisy inputs, greater noise consistently opened the gates more.
+  A control network that had never been trained on noise did not show the same behaviour. The effect
+  was therefore not merely a mechanical response to larger or stranger pixel values; the network had
+  learned to route more gated computation toward the kind of difficulty it had encountered during
+  training. Different Highway Network runs also broadly agreed on which examples demanded more of
+  that computation.<span class="ref" data-text="See thesis Figs. 4.1-4.4 and the discussion of noisy-input controls and cross-run correlations.">[1]</span>
+</p>
+
+<figure class="blog-post">
+  <img
+    src="/assets/images/research/curriculum-learning/figure-4-1.png"
+    alt="Four plots showing Highway Network transform-gate usage increasing as more Gaussian noise is added to the same examples."
+    loading="lazy"
+  >
+  <figcaption>
+    Figure 4.1: the blue curve is the clean input; green, red, and yellow add progressively more
+    Gaussian noise. Across four runs, more difficult inputs activated more gated computation.
+  </figcaption>
+</figure>
+
+<h2 class="blog-post">The experiment that became a pruning project</h2>
+
+<p class="blog-post">
+  There was a loose end. The gates changed with difficulty, but their absolute values remained fairly
+  high and the separation between easier and harder examples was not dramatic. My working theory was
+  simple: the network had no reason to keep a gate closed. If using another transform was free, why not
+  keep using it?
+</p>
+
+<p class="blog-post">
+  In a later high-performance-computing course project at USI, I added an explicit incentive to minimise
+  transform-gate activity. The gate values collapsed—from roughly the 0.45-0.70 range in the ordinary
+  model to around 0.02-0.12 in the incentivised model. Once a transform gate stayed near zero, both the
+  transform branch and its gate could be removed. That observation became
+  <a href="https://pasc17.org/fileadmin/user_upload/pasc17/program/post155s2.pdf" target="_blank" rel="noopener noreferrer">Pruning Highway Networks for Reducing Memory Usage</a>,
+  presented at PASC17: the pruned model shrank from 34 MB to 5.2 MB—about 85%—for a 1.72
+  percentage-point accuracy drop.<span class="ref" data-text="D. Tomar and K. Greff, Pruning Highway Networks for Reducing Memory Usage, PASC17 poster, 2017.">[2]</span>
+  The <a href="https://github.com/undercutspiky/CHN" target="_blank" rel="noopener noreferrer">repository also contains the project report</a>.
+</p>
+
+<p class="blog-post">
+  In hindsight, this was the cleanest bridge between the thesis and a concrete efficiency result:
+  a question about how networks allocate computation became a mechanism for removing computation.
+</p> -->
+
+
+
+<h2 class="blog-post">Idea 2: Resource-based difficulty (Highway Networks)</h2>
+
+<div class="thesis-reading-guide">
+  <p><strong>Where to look in the thesis</strong> <span aria-hidden="true">(printed page numbers)</span></p>
+  <ul>
+    <li><strong>§4.1.1, pp. 24-32:</strong> transform-gate activity as a resource-based notion of difficulty.</li>
+  </ul>
+</div>
+
+<p class="blog-post">
+  Next, I defined difficulty by how much computation an example activates. Highway Networks contain transform gates. 
+  The original papers on Highway Networks had already observed that inherently difficult datasets (like CIFAR) 
+  utilize these gates differently than simple datasets (like MNIST). I wanted to take this a step further: could we 
+  use these gates to score the difficulty of <em>individual examples</em> within the same dataset?
+</p>
+
+<p class="blog-post">
+  I treated the sum of these gate outputs as a rough measure of the computation allocated to an example. To test 
+  whether that score meant anything, I added increasing amounts of Gaussian noise to CIFAR-10 images. 
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/curriculum-learning/figure-4-1.png" alt="Four plots showing Highway Network transform-gate usage increasing as more Gaussian noise is added to the same examples." loading="lazy">
+  <figcaption>Figure 4.1: The blue curve is the clean input; green, red, and yellow add progressively more Gaussian noise. Across four runs, more difficult inputs activated more gated computation.</figcaption>
+</figure>
+
+<p class="blog-post">
+  A control network that had never been trained on noise did not show the same behaviour. The effect was therefore 
+  not merely a mechanical response to larger or stranger pixel values; the network had learned to route more gated 
+  computation toward the kind of difficulty it had encountered during training. Different Highway Network runs also 
+  broadly agreed on which examples demanded more of that computation.
+</p>
+
+<h3 class="blog-post">The experiment that became a pruning project</h3>
+
+<p class="blog-post">
+  There was a loose end. The gates changed with difficulty, but their absolute values remained fairly high and the 
+  separation between easier and harder examples was not dramatic. My working theory was simple: the network had no 
+  reason to keep a gate closed. If using another transform was free, why not keep using it?
+</p>
+
+<p class="blog-post">
+  I added an explicit incentive to minimise transform-gate activity. The gate values collapsed—from roughly the 
+  0.45-0.70 range in the ordinary model to around 0.02-0.12 in the incentivised model. Once a transform gate stayed 
+  near zero, both the transform branch and its gate could be removed. I pursued this idea later in a 
+  high-performance-computing course project at USI, and it became
+  <a href="https://pasc17.org/fileadmin/user_upload/pasc17/program/post155s2.pdf" target="_blank" rel="noopener noreferrer">Pruning Highway Networks for Reducing Memory Usage</a>, 
+  which I presented as a student poster at PASC17. The pruned model shrank from 34 MB to 5.2 MB—about 85%—for a 
+  1.7 percentage-point accuracy drop.
+</p>
+
+
+
+
+
+<!-- <h2 class="blog-post">Lens 2: how long does an example take to learn?</h2>
+
+<p class="blog-post">
+  The second definition was independent of Highway Networks. For each example, I measured the first
+  epoch at which its loss crossed a confidence threshold. This “time-to-learn” score was correlated not
+  only across random initialisations, but also across two different architectures: Highway Networks and
+  an All-Convolutional network.<span class="ref" data-text="Thesis §4.1.2 and Fig. 4.7 compare time-based difficulty across Highway and All-Conv networks.">[1]</span>
+</p>
+
+<figure class="blog-post">
+  <img
+    src="/assets/images/research/curriculum-learning/figure-4-7.png"
+    alt="Correlation matrix comparing time-to-learn across Highway and All-Convolutional networks."
+    loading="lazy"
+  >
+  <figcaption>
+    Figure 4.7: examples learned early or late with some consistency across runs and architectures.
+  </figcaption>
+</figure>
+
+<p class="blog-post">
+  That result suggested that at least part of example difficulty belongs to the data rather than to one
+  particular network. But it did <em>not</em> mean there was a single universal ranking: the resource-based
+  and time-based scores were only weakly correlated in these CIFAR-10 experiments.
+</p> -->
+
+
+
+<h2 class="blog-post">Idea 3: Time-to-learn and catastrophic forgetting</h2>
+
+<div class="thesis-reading-guide">
+  <p><strong>Where to look in the thesis</strong> <span aria-hidden="true">(printed page numbers)</span></p>
+  <ul>
+    <li><strong>§4.1.2, pp. 32-36:</strong> time-to-learn and agreement across Highway and All-Conv networks.</li>
+  </ul>
+</div>
+
+<p class="blog-post">
+  My third definition of difficulty was independent of Highway Networks. For each example, I measured the first epoch 
+  at which its loss crossed a confidence threshold. This “time-to-learn” score was correlated not only across random 
+  initialisations, but also across two different architectures: Highway Networks and an All-Convolutional network.
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/curriculum-learning/figure-4-7.png" alt="Correlation matrix comparing time-to-learn across Highway and All-Convolutional networks." loading="lazy">
+  <figcaption>Figure 4.7: Examples learned early or late with some consistency across runs and architectures.</figcaption>
+</figure>
+
+<p class="blog-post">
+  I attempted to build a curriculum based on this metric, experimenting with several strategies like starting with the 
+  fastest-learning examples. However, some classes became severely under-represented because the network naturally learned 
+  certain objects faster than others, leading to catastrophic forgetting. I fixed this by applying stratified sampling, 
+  which repaired the class imbalance, but ultimately it only recovered the random baseline rather than beating it.
+</p>
+
+
+
+
+<!-- <h2 class="blog-post">Lens 3: which examples are useful right now?</h2>
+
+<p class="blog-post">
+  Difficulty is not the same thing as usefulness. To ask which examples were helping at a particular
+  moment, I tracked each example's <em>loss-drop</em>: how much its loss changed from one epoch to the next.
+  Consecutive epochs were usually negatively correlated. Examples whose loss had risen tended to receive
+  a large decrease in the following epoch; examples that had just received a large decrease tended to
+  flatten out.<span class="ref" data-text="Thesis §4.2.2, especially Figs. 4.12-4.14, studies loss-drop correlations and trajectories across consecutive epochs.">[1]</span>
+</p>
+
+<figure class="blog-post">
+  <img
+    src="/assets/images/research/curriculum-learning/figure-4-14.png"
+    alt="The same highlighted training examples moving through negative, positive, and near-zero loss changes across epochs."
+    loading="lazy"
+  >
+  <figcaption>
+    Figure 4.14: the examples with the largest positive loss-drop in one epoch mostly came from the
+    negative-loss-drop region in the preceding epoch, then moved close to zero.
+  </figcaption>
+</figure>
+
+<p class="blog-post">
+  This looked like a usable online signal: select the examples whose loss had just increased, because
+  they were likely to improve most next. The experiment failed. Training only on that set made other
+  examples worse; two groups effectively traded loss back and forth, and some classes became severely
+  under-represented. Selecting 10,000, 20,000, or 30,000 examples prevented convergence; selecting
+  40,000 converged but still underperformed training on all 50,000. Stratified sampling repaired the
+  class imbalance, but only recovered the random baseline rather than beating it.<span class="ref" data-text="Thesis Experiment 4.6 and Fig. 4.15 show competing example groups and the failure of the greedy loss-drop curriculum.">[1]</span>
+</p>
+
+<p class="blog-post">
+  This negative result is more interesting than a clean success would have been. An example can be
+  useful even when its own loss is not about to fall, because its gradient may protect or improve other
+  examples. A curriculum cannot be designed from isolated example scores alone; it must account for
+  interactions.
+</p> -->
+
+<h2 class="blog-post">The ecology of mini-batches</h2>
+
+<div class="thesis-reading-guide">
+  <p><strong>Where to look in the thesis</strong> <span aria-hidden="true">(printed page numbers)</span></p>
+  <ul>
+    <li><strong>§4.3 and Figs. 4.16-4.18, pp. 41-50:</strong> the “ecology” of how mini-batches affect one another.</li>
+  </ul>
+</div>
+
+<p class="blog-post">
+  I then measured those interactions directly. Starting from a fixed training state, I trained on one
+  mini-batch and recorded the loss change it caused on every other mini-batch. Each source batch was
+  represented by a high-dimensional vector of positive and negative effects. If batches had stable roles,
+  vectors belonging to the same batch should have stayed near one another as training progressed.
+</p>
+
+<figure class="blog-post">
+  <img
+    src="/assets/images/research/curriculum-learning/figure-4-17.png"
+    alt="t-SNE visualisations of batch-effect vectors coloured by training epoch."
+    loading="lazy"
+  >
+  <figcaption>
+    Figure 4.17: the batch-effect vectors clustered primarily by epoch—the current state of the model—
+    rather than by a persistent identity of the batch.
+  </figcaption>
+</figure>
+
+<p class="blog-post">
+  The strongest structure was temporal. Vectors clustered by epoch, and after removing the epoch-level
+  mean and scale, the same batch did not remain in a stable cluster. In this setup, what a batch did to
+  the rest of the dataset depended more on the current parameters than on a permanent property of that
+  batch.<span class="ref" data-text="Thesis §4.3 and Figs. 4.17-4.18 analyse batch-effect vectors before and after normalising epoch-level structure.">[1]</span>
+</p>
+
+
+
+
+<h2 class="blog-post">Difficulty was not one axis</h2>
+
+<p class="blog-post">
+  The resource-based and time-based scores both looked sensible, and each was reasonably stable on its own, but they 
+  did not select the same examples. 
+</p>
+
+<figure class="blog-post">
+  <img src="/assets/images/research/curriculum-learning/figure-5-1.png" alt="Correlation matrix comparing resource-based and time-based example difficulty." loading="lazy">
+  <figcaption>Figure 5.1: Two plausible definitions of “hard” agreed only weakly.</figcaption>
+</figure>
+
+<p class="blog-post">
+  In the language of the thesis, they behaved like different—and approximately orthogonal—dimensions of difficulty. 
+  This may help explain why exploiting just one dimension at a time failed to beat random shuffling. A sample may 
+  be slow to learn without activating much gated computation; it may activate many transforms without being the sample 
+  whose loss is most reducible now; and its effect on another batch may reverse as the model moves through parameter 
+  space. If we were to design a true automated curriculum, we would need to somehow let the network exploit 
+  <em>all</em> of these dimensions simultaneously.
+</p>
+
+<h2 class="blog-post">Looking back: What later work explored</h2>
+
+<p class="blog-post">
+  While I didn't publish this thesis, the central methodology—using dynamic training trajectories rather than static 
+  data properties to understand dataset difficulty—became an area of research over the next few years. The findings 
+  in my thesis closely anticipated the core ideas of several major papers:
+</p>
+
+<ul class="thesis-comparison-list">
+  <li>
+    <strong>
+      <a href="https://openreview.net/forum?id=BJlxm30cKm"
+        target="_blank"
+        rel="noopener noreferrer">
+        An Empirical Study of Example Forgetting during Deep Neural Network Learning
+      </a>
+      (CMU / Microsoft Research / Mila, ICLR 2019):
+    </strong>
+    <p>
+      Toneva et al. counted transitions from correct to incorrect classification across
+      training to identify “forgetting events”. This discrete tracking of forgetting mirrors
+      my continuous tracking of the loss-drop cycle across consecutive epochs.
+    </p>
+
+    <p></p>
+      There is also a second connection to my time-to-learn experiments. They measured the
+      first presentation at which each example was learned and found that more forgettable
+      examples tended to be learned later. Their synthetic-noise experiments approached
+      difficulty from another direction: examples with corrupted labels were among the most
+      forgotten, while progressively adding Gaussian pixel noise reduced the number of
+      unforgettable examples and increased forgetting.
+    </p>
+
+    <p>
+      Taken together, these results closely echo the idea behind my time-based definition of
+      difficulty: examples differ systematically in how quickly and how stably a network
+      learns them. Their threshold was the first correct classification, whereas mine was the
+      first epoch at which an example's loss crossed a confidence threshold.
+      <span class="ref"
+            data-text="M. Toneva et al., An Empirical Study of Example Forgetting during Deep Neural Network Learning, ICLR 2019.">
+        [3]
+      </span>
+    </p>
+  </li>
+  <li>
+    <strong><a href="https://aclanthology.org/2020.emnlp-main.746/" target="_blank" rel="noopener noreferrer">Dataset Cartography: Mapping and Diagnosing Datasets with Training Dynamics</a> (Allen AI / UW, EMNLP 2020):</strong> 
+    Swayamdipta et al. mapped examples using model confidence and variability across epochs. This follows the same broad 
+    intuition that drove my time-to-learn experiments: a dataset's true structure is revealed by watching the model's confidence 
+    fluctuate over time, rather than looking at some static property of the samples. While their paper builds a beautifully 
+    comprehensive cartography framework, the conceptual starting point is quite similar.<span class="ref" data-text="S. Swayamdipta et al., Dataset Cartography: Mapping and Diagnosing Datasets with Training Dynamics, EMNLP 2020.">[4]</span>
+  </li>
+  <li>
+    <strong><a href="https://proceedings.neurips.cc/paper/2021/hash/ac56f8fe9eea3e4a365f29f0f1957c55-Abstract.html" target="_blank" rel="noopener noreferrer">Deep Learning on a Data Diet</a> (Stanford / Google, NeurIPS 2021):</strong> 
+    Paul et al. showed that early-training scores (like error norms) can identify the most important examples to train on. 
+    The objective and score are different, but the research question is remarkably close to my greedy loss-drop experiments: 
+    can early or current training behaviour tell us which examples are worth spending compute on?<span class="ref" data-text="M. Paul, S. Ganguli, and G. K. Dziugaite, Deep Learning on a Data Diet, NeurIPS 2021.">[5]</span>
+  </li>
+</ul>
+
+<div class="thesis-bottom-line">
+  <p>
+    <strong>The bottom line:</strong> The thesis did not produce a curriculum that beat random shuffling. What it did 
+    produce was an early map of a research direction that became much more important later: follow individual examples 
+    throughout training, treat difficulty as multidimensional, and ask what data is useful to this model at this 
+    particular moment.
+  </p>
+</div>
+
+<div class="thesis-note">
+  <p>
+    <strong>Want the complete story?</strong>
+    The full thesis contains the experiments, failed curricula, additional
+    figures, and discussion that would not fit on this page.
+    <a href="https://doi.org/10.5281/zenodo.21500749"
+       target="_blank"
+       rel="noopener noreferrer">
+      Read the complete Master's thesis on Zenodo →
+    </a>
+  </p>
+</div>
+
+<!-- <h2 class="blog-post">Difficulty was not one axis</h2>
+
+<p class="blog-post">
+  The resource-based and time-based scores both looked sensible, and each was reasonably stable on its
+  own, but they did not select the same examples. In the language of the thesis, they behaved like
+  different—and approximately orthogonal—dimensions of difficulty for this dataset and experimental
+  setup.<span class="ref" data-text="Thesis §5.1 and Fig. 5.1 report low correlation between resource-based and time-based difficulty on CIFAR-10.">[1]</span>
+</p>
+
+<figure class="blog-post">
+  <img
+    src="/assets/images/research/curriculum-learning/figure-5-1.png"
+    alt="Correlation matrix comparing resource-based and time-based example difficulty."
+    loading="lazy"
+  >
+  <figcaption>
+    Figure 5.1: two plausible definitions of “hard” agreed only weakly. This is a result about these
+    experiments, not a claim that all notions of difficulty are universally independent.
+  </figcaption>
+</figure>
+
+<p class="blog-post">
+  That helps explain why a one-dimensional easy-to-hard schedule was not enough. A sample may be slow
+  to learn without activating much gated computation; it may activate many transforms without being the
+  sample whose loss is most reducible now; and its effect on another batch may reverse as the model moves
+  through parameter space.
+</p>
+
+<h2 class="blog-post">What later work explored</h2>
+
+<p class="blog-post">
+  I would not describe the papers below as the “same work”, and this thesis does not establish priority
+  over them. Their definitions, datasets, methods, and claims are different. The meaningful connection is
+  a shared research programme: <strong>the trajectory of an individual example during training contains
+  useful information that a final aggregate accuracy hides.</strong>
+</p>
+
+<ul class="thesis-comparison-list">
+  <li>
+    <strong><a href="https://openreview.net/forum?id=BJlxm30cKm" target="_blank" rel="noopener noreferrer">Example Forgetting</a> (ICLR 2019).</strong>
+    Toneva et al. counted transitions from correct to incorrect classification and found that forgetting
+    behaviour can transfer across architectures. The closest thesis material is §4.2.2, but my signal was
+    continuous loss change rather than a discrete correct/incorrect event.<span class="ref" data-text="M. Toneva et al., An Empirical Study of Example Forgetting during Deep Neural Network Learning, ICLR 2019.">[3]</span>
+  </li>
+  <li>
+    <strong><a href="https://aclanthology.org/2020.emnlp-main.746/" target="_blank" rel="noopener noreferrer">Dataset Cartography</a> (EMNLP 2020).</strong>
+    Swayamdipta et al. mapped examples using confidence and confidence variability across epochs. The
+    closest thesis sections are §4.1.2 and §4.2.2: time-to-threshold and per-epoch trajectories, respectively.
+    The paper's data maps are a more systematic and much better validated framework.<span class="ref" data-text="S. Swayamdipta et al., Dataset Cartography: Mapping and Diagnosing Datasets with Training Dynamics, EMNLP 2020.">[4]</span>
+  </li>
+  <li>
+    <strong><a href="https://proceedings.neurips.cc/paper/2021/hash/ac56f8fe9eea3e4a365f29f0f1957c55-Abstract.html" target="_blank" rel="noopener noreferrer">Deep Learning on a Data Diet</a> (NeurIPS 2021).</strong>
+    Paul et al. showed that early-training scores can identify important examples and remain useful across
+    architectures and initialisations. That is close in spirit to the thesis's search for stable, model-derived
+    difficulty scores, though the proposed scores and evaluation are different.<span class="ref" data-text="M. Paul, S. Ganguli, and G. K. Dziugaite, Deep Learning on a Data Diet, NeurIPS 2021.">[5]</span>
+  </li>
+  <li>
+    <strong><a href="https://proceedings.mlr.press/v162/mindermann22a.html" target="_blank" rel="noopener noreferrer">RHO-LOSS</a> (ICML 2022).</strong>
+    Mindermann et al. asked which points are learnable, worth learning, and not yet learned, using reducible
+    holdout loss. It addresses the same broad problem as my greedy loss-drop experiments—what should the
+    model train on <em>now</em>?—but solves it with a more principled generalisation-oriented objective.<span class="ref" data-text="S. Mindermann et al., Prioritized Training on Points that are Learnable, Worth Learning, and Not Yet Learnt, ICML 2022.">[6]</span>
+  </li>
+</ul>
+
+<div class="thesis-bottom-line">
+  <p>
+    <strong>What I would claim today:</strong> the thesis anticipated several questions that later became
+    central to research on training dynamics and data selection. It did not already contain the later
+    methods, and its curriculum strategies did not beat random sampling. Its lasting contribution was the
+    empirical viewpoint: watch examples throughout training, distinguish different notions of difficulty,
+    and treat usefulness as a relationship between the data and the model's current state—not as a fixed
+    label attached to an example.
+  </p>
+</div> -->
+
+<h2 class="blog-post">References</h2>
+
+<ol class="blog-post" id="citations">
+  <li id="ref-1"><a href="https://doi.org/10.5281/zenodo.21500749" target="_blank" rel="noopener noreferrer">Dhananjay Tomar. <em>Curriculum Learning for Artificial Neural Networks: Understanding the training phase of ANNs for curriculum learning.</em> MSc thesis, Università della Svizzera Italiana, 2017.</a></li>
+  <li id="ref-2"><a href="https://pasc17.org/fileadmin/user_upload/pasc17/program/post155s2.pdf" target="_blank" rel="noopener noreferrer">Dhananjay Tomar and Klaus Greff. “Pruning Highway Networks for Reducing Memory Usage.” PASC17 poster, 2017.</a></li>
+  <li id="ref-3"><a href="https://openreview.net/forum?id=BJlxm30cKm" target="_blank" rel="noopener noreferrer">Mariya Toneva et al. “An Empirical Study of Example Forgetting during Deep Neural Network Learning.” ICLR, 2019.</a></li>
+  <li id="ref-4"><a href="https://aclanthology.org/2020.emnlp-main.746/" target="_blank" rel="noopener noreferrer">Swabha Swayamdipta et al. “Dataset Cartography: Mapping and Diagnosing Datasets with Training Dynamics.” EMNLP, 2020.</a></li>
+  <li id="ref-5"><a href="https://proceedings.neurips.cc/paper/2021/hash/ac56f8fe9eea3e4a365f29f0f1957c55-Abstract.html" target="_blank" rel="noopener noreferrer">Mansheej Paul, Surya Ganguli, and Gintare Karolina Dziugaite. “Deep Learning on a Data Diet: Finding Important Examples Early in Training.” NeurIPS, 2021.</a></li>
+  <!-- <li id="ref-6"><a href="https://proceedings.mlr.press/v162/mindermann22a.html" target="_blank" rel="noopener noreferrer">Sören Mindermann et al. “Prioritized Training on Points that are Learnable, Worth Learning, and Not Yet Learnt.” ICML, 2022.</a></li> -->
+</ol>

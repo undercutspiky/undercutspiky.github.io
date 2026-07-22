@@ -44,7 +44,7 @@ seo:
     {% endif %}
     {% if has_links %}
     <div class="research-link-group">
-      {% if page.paper_url %}<a href="{{ page.paper_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128196; Paper</a>{% endif %}
+      {% if page.paper_url %}<a href="{{ page.paper_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128196; {% if page.status == "Thesis" %}Thesis{% else %}Paper{% endif %}</a>{% endif %}
       {% if page.preprint_url %}<a href="{{ page.preprint_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128196; Preprint</a>{% endif %}
       {% if page.code_url %}<a href="{{ page.code_url }}" class="research-link-btn" target="_blank" rel="noopener">&#128187; Code</a>{% endif %}
       {% if page.project_url %}<a href="{{ page.project_url }}" class="research-link-btn" target="_blank" rel="noopener">&#127760; Project</a>{% endif %}
