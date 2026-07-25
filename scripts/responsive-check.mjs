@@ -218,7 +218,8 @@ async function main() {
     const baseUrl = `http://127.0.0.1:${address.port}`;
 
     browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
     for (const route of routes) {
       for (const width of widths) {
