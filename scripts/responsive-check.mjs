@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const siteRoot = path.join(repoRoot, '_site');
@@ -166,6 +167,28 @@ async function testDesktopNav(page, baseUrl) {
   assert(!toggleVisible, 'Mobile menu button should not be visible at 1440px');
 }
 
+async function testAccessibility(page, baseUrl, route) {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
+
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+
+  const blockingViolations = results.violations.filter(
+    ({ impact }) => impact === 'critical' || impact === 'serious'
+  );
+
+  const details = blockingViolations
+    .map(({ id, help, nodes }) => `${id}: ${help} (${nodes.length} affected element(s))`)
+    .join('\n');
+
+  assert(
+    blockingViolations.length === 0,
+    `Accessibility violations on ${route}:\n${details}`
+  );
+}
+
 async function main() {
   await fs.mkdir(screenshotRoot, { recursive: true });
 
@@ -201,6 +224,10 @@ async function main() {
       for (const width of widths) {
         await testOverflow(page, baseUrl, route, width);
       }
+    }
+
+    for (const route of routes) {
+      await testAccessibility(page, baseUrl, route);
     }
 
     await testMobileNav(page, baseUrl);
