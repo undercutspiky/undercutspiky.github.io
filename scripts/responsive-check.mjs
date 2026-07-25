@@ -180,8 +180,55 @@ async function testAccessibility(page, baseUrl, route) {
   );
 
   const details = blockingViolations
-    .map(({ id, help, nodes }) => `${id}: ${help} (${nodes.length} affected element(s))`)
-    .join('\n');
+  .map(({ id, help, nodes }) => {
+    const affectedNodes = nodes
+      .map((node, index) => {
+        const target = node.target?.join(' ') || 'Unknown target';
+        const failure = node.failureSummary
+          ? node.failureSummary.replace(/\n/g, '\n       ')
+          : 'No additional details';
+
+        return [
+          `  ${index + 1}. Target: ${target}`,
+          `     HTML: ${node.html}`,
+          `     ${failure}`
+        ].join('\n');
+      })
+      .join('\n');
+
+    return [
+      `${id}: ${help} (${nodes.length} affected element(s))`,
+      affectedNodes
+    ].join('\n');
+  })
+  .join('\n\n');
+
+  if (blockingViolations.length > 0) {
+    const routeSlug =
+      route === '/'
+        ? 'home'
+        : route
+            .replace(/^\//, '')
+            .replace(/\//g, '_')
+            .replace(/\.html$/, '');
+
+    const reportPath = path.join(
+      screenshotRoot,
+      `axe-${routeSlug}.json`
+    );
+
+    await fs.writeFile(
+      reportPath,
+      JSON.stringify(
+        {
+          route,
+          violations: blockingViolations
+        },
+        null,
+        2
+      )
+    );
+  }
 
   assert(
     blockingViolations.length === 0,

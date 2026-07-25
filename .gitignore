@@ -14,3 +14,4 @@ vendor/
 
 # Optional: Ignore local ruby version manager files (if you want to keep it purely local)
 .ruby-version
+.nvmrc
