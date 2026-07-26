@@ -4,11 +4,32 @@ defaults:
     values:
       layout: "default"
       image: /assets/images/logo2.jpg
- # SEO tag
- # --------------------------------------------------------------------------------------------------------
-title: Dhananjay's Website
-tagline: Lesser known things about Deep Learning
-description: Dhananjay blogs on Deep Learning research usually covering lesser known papers.
+# SEO
+# --------------------------------------------------------------------------------------------------------
+title: "Dhananjay Tomar"
+tagline: "Deep Learning Researcher"
+description: >-
+  Dhananjay Tomar is a deep-learning researcher and scientific developer
+  working on robustness, computational pathology, efficient model training,
+  and neural-network training dynamics.
+
+url: "https://dhananjaytomar.com"
+baseurl: ""
+
+author:
+  name: "Dhananjay Tomar"
+  url: "https://dhananjaytomar.com"
+
+logo: /assets/images/logo2.jpg
+
+social:
+  name: "Dhananjay Tomar"
+  links:
+    - "https://scholar.google.com/citations?user=VEGYe_UAAAAJ&hl=en"
+    - "https://github.com/undercutspiky"
+    - "https://www.linkedin.com/in/djay-tomar/"
+
+# Keep this until the new Search Console property has been verified.
 google_site_verification: rd3Rph-oFTbtB79i_w__k7I1xIOCywth_XZJ8a-Gtk0
 # --------------------------------------------------------------------------------------------------------
 collections:
@@ -28,6 +49,3 @@ exclude:
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
-
-baseurl: /
-root: /

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master, optimize-ci-and-seo]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -54,6 +54,16 @@ jobs:
         run: bundle exec jekyll build --strict_front_matter
         env:
           JEKYLL_ENV: production
+      
+      - name: Validate production domain metadata
+        run: |
+          test -f CNAME
+          test "$(tr -d '\r\n' < CNAME)" = "dhananjaytomar.com"
+
+          test -f _site/sitemap.xml
+
+          grep -q 'https://dhananjaytomar.com/' _site/index.html
+          grep -q '<loc>https://dhananjaytomar.com/' _site/sitemap.xml
 
       - name: Validate generated HTML and internal links
         run: |
