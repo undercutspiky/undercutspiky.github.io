@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const siteRoot = path.join(repoRoot, '_site');
@@ -166,6 +167,75 @@ async function testDesktopNav(page, baseUrl) {
   assert(!toggleVisible, 'Mobile menu button should not be visible at 1440px');
 }
 
+async function testAccessibility(page, baseUrl, route) {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle' });
+
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+
+  const blockingViolations = results.violations.filter(
+    ({ impact }) => impact === 'critical' || impact === 'serious'
+  );
+
+  const details = blockingViolations
+  .map(({ id, help, nodes }) => {
+    const affectedNodes = nodes
+      .map((node, index) => {
+        const target = node.target?.join(' ') || 'Unknown target';
+        const failure = node.failureSummary
+          ? node.failureSummary.replace(/\n/g, '\n       ')
+          : 'No additional details';
+
+        return [
+          `  ${index + 1}. Target: ${target}`,
+          `     HTML: ${node.html}`,
+          `     ${failure}`
+        ].join('\n');
+      })
+      .join('\n');
+
+    return [
+      `${id}: ${help} (${nodes.length} affected element(s))`,
+      affectedNodes
+    ].join('\n');
+  })
+  .join('\n\n');
+
+  if (blockingViolations.length > 0) {
+    const routeSlug =
+      route === '/'
+        ? 'home'
+        : route
+            .replace(/^\//, '')
+            .replace(/\//g, '_')
+            .replace(/\.html$/, '');
+
+    const reportPath = path.join(
+      screenshotRoot,
+      `axe-${routeSlug}.json`
+    );
+
+    await fs.writeFile(
+      reportPath,
+      JSON.stringify(
+        {
+          route,
+          violations: blockingViolations
+        },
+        null,
+        2
+      )
+    );
+  }
+
+  assert(
+    blockingViolations.length === 0,
+    `Accessibility violations on ${route}:\n${details}`
+  );
+}
+
 async function main() {
   await fs.mkdir(screenshotRoot, { recursive: true });
 
@@ -195,12 +265,17 @@ async function main() {
     const baseUrl = `http://127.0.0.1:${address.port}`;
 
     browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
 
     for (const route of routes) {
       for (const width of widths) {
         await testOverflow(page, baseUrl, route, width);
       }
+    }
+
+    for (const route of routes) {
+      await testAccessibility(page, baseUrl, route);
     }
 
     await testMobileNav(page, baseUrl);

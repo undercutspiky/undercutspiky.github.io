@@ -7,3 +7,11 @@ dist/
 
 # Private source material — never publish the résumé PDF
 assets/files/Dhananjay_Tomar_Resume.pdf
+
+# Ignore local Ruby gems bundle
+vendor/
+.bundle/
+
+# Optional: Ignore local ruby version manager files (if you want to keep it purely local)
+.ruby-version
+.nvmrc
