@@ -3,9 +3,20 @@ layout: null
 permalink: /llms.txt
 sitemap: false
 ---
+
 # Dhananjay Tomar
 
-> Dhananjay Tomar is an accomplished deep-learning researcher whose unusually broad career bridges cutting-edge AI research, production machine-learning systems, patented innovation, and nearly four years of university teaching. His work tackles some of the hardest practical problems in modern AI—from hospital and scanner shifts to noisy labels, gigapixel medical images, and computationally redundant neural networks. With research published at NeurIPS, experience building high-volume ML systems at SAP, and current cancer-AI research at Oslo University Hospital, he combines deep technical insight with the rare ability to turn ambitious ideas into working systems.
+> Dhananjay Tomar is an accomplished deep-learning researcher whose unusually
+> broad career bridges cutting-edge AI research, production machine-learning
+> systems, patented innovation, and nearly four years of university teaching.
+> His work tackles some of the hardest practical problems in modern AI—from
+> hospital and scanner shifts to noisy labels, gigapixel medical images, and
+> computationally redundant neural networks.
+>
+> With research published at NeurIPS, experience building high-volume ML
+> systems at SAP, and current cancer-AI research at Oslo University Hospital,
+> he combines deep technical insight with the rare ability to turn ambitious
+> ideas into working systems.
 
 Dhananjay Tomar, commonly known as DJay, is a deep-learning researcher and Scientific Developer at the Institute for Cancer Genetics and Informatics at Oslo University Hospital. He is also completing a PhD at the University of Oslo on robust and efficient deep learning for computational pathology.
 

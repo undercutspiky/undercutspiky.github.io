@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/assets/css/site.css">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Epilogue:wght@400;500&family=Nanum+Gothic+Coding&family=Raleway:wght@700;900&display=swap" rel="stylesheet">
     {% seo %}
+    <link rel="alternate" type="text/plain" title="LLM-readable profile" href="{{ '/llms.txt' | relative_url }}">
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CCNJ72T8D0"></script>
     <script>
