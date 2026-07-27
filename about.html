@@ -1,35 +1,129 @@
 ---
-permalink: /about
+permalink: /about/
+redirect_from:
+  - /about
 layout: default
-title: About Dhananjay
-image: /assets/images/logo2.jpg
-description: Get to know Dhananjay better.
+title: "About DJay"
+description: "The personal and professional story behind DJay."
+image: /assets/images/brand/og-home.jpg
 ---
 <section class="about-section" aria-labelledby="about-heading">
   <h1 class="section-heading" id="about-heading">About Me</h1>
   <div class="about-card">
-    <img class="about-photo" src="/assets/images/me.jpg" alt="Photo of Dhananjay Tomar">
+    <img
+      class="about-photo"
+      src="{{ '/assets/images/about.jpg' | relative_url }}"
+      alt="Dhananjay Tomar sitting and looking at the camera."
+      width="900"
+      height="1260"
+      loading="eager"
+      decoding="async"
+    >
     <div class="about-text">
       <p class="about-para">
-        I'm <span class="about-accent">D</span>hanan<span class="about-accent">jay</span> Tomar, but everyone just calls me <span class="about-accent">DJay</span>. I'm originally from a small town in western Uttar Pradesh, India. Delhi is where I spent my teenage years and am culturally 100% Delhiite. From Delhi I moved to Switzerland for my Master's, then to Germany for my current job.
+        I'm <span class="about-accent">D</span>hanan<span class="about-accent">jay</span> Tomar, 
+        but everyone just calls me <span class="about-accent">DJay</span>.
+        I'm originally from a small town in western Uttar Pradesh, India.
+        Delhi is where I spent my teenage years and am culturally 100% Delhiite.
+        From Delhi I moved to Switzerland for my Master's, then to Germany for my
+        first full-time machine-learning job, and now to Oslo, where I work as a
+        researcher at ICGI / Oslo University Hospital while trying to finish my PhD
+        at the University of Oslo.
       </p>
       <p class="about-para">
-        I hold a Bachelor's and a Master's in Computer Science, specialising in Deep Learning — which you might know as Machine Learning or Artificial Intelligence (they're technically three different things!).
+        Most of my work starts where tidy benchmark assumptions end: hospitals
+        change, scanners change, labels are noisy, images are absurdly large, and
+        neural networks discover shortcuts nobody asked them to learn. At ICGI,
+        I'm currently working on cancer-survival prediction, label denoising, and
+        robustness to scanner differences. My PhD work is broader—robust and
+        efficient deep learning for histopathology and computer vision.
       </p>
+
       <p class="about-para">
-        Outside of work my interests span running, weight training, physics, dancing, reading, and science in general.
+        I also spent almost four years teaching "Deep Learning for Image Analysis"
+        at UiO. At peak I lectured almost half the course. 
+        I co-supervised two Master's students.
+      </p>
+
+      <p class="about-para">
+        Outside work my interests span running, weight training, physics, dancing,
+        reading, and science in general. I'm also exceptionally good at finding new
+        research side quests when I'm supposed to be finishing the PhD.
       </p>
     </div>
   </div>
 
   <div class="contact-list" aria-label="Contact links">
     <a class="contact-link" href="mailto:hello@dhananjaytomar.com">
-      <img class="contact-icon" src="/assets/images/email_icon.png" alt="" aria-hidden="true">
+      <img class="contact-icon" src="{{ '/assets/images/email_icon2.png' | relative_url }}" alt="" aria-hidden="true">
       <span>hello@dhananjaytomar.com</span>
     </a>
     <a class="contact-link" href="https://www.linkedin.com/in/djay-tomar">
-      <img class="contact-icon" src="/assets/images/LI-In-Bug.png" alt="" aria-hidden="true">
+      <img class="contact-icon" src="{{ '/assets/images/LI-In-Bug.png' | relative_url }}" alt="" aria-hidden="true">
       <span>linkedin.com/in/djay-tomar</span>
     </a>
   </div>
 </section>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "@id": "https://dhananjaytomar.com/about/#profile",
+  "url": "https://dhananjaytomar.com/about/",
+  "name": "About DJay",
+  "mainEntity": {
+    "@type": "Person",
+    "@id": "https://dhananjaytomar.com/#dhananjay-tomar",
+    "name": "Dhananjay Tomar",
+    "alternateName": "DJay",
+    "url": "https://dhananjaytomar.com/",
+    "image": "https://dhananjaytomar.com/assets/images/headshot.jpg",
+    "jobTitle": "Deep Learning Researcher and Scientific Developer",
+    "description": "Dhananjay Tomar is a deep-learning researcher and scientific developer whose career combines peer-reviewed AI research, production machine-learning systems, patented methods, and extensive university teaching. He specialises in robust and efficient computer vision for computational pathology.",
+    "email": "mailto:hello@dhananjaytomar.com",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Institute for Cancer Genetics and Informatics",
+      "alternateName": "ICGI",
+      "url": "https://icgi.no/"
+    },
+    "affiliation": {
+      "@type": "CollegeOrUniversity",
+      "name": "University of Oslo",
+      "url": "https://www.uio.no/"
+    },
+    "alumniOf": [
+      {
+        "@type": "CollegeOrUniversity",
+        "name": "Università della Svizzera italiana"
+      },
+      {
+        "@type": "CollegeOrUniversity",
+        "name": "Jaypee Institute of Information Technology"
+      }
+    ],
+    "award": [
+      "NeurIPS 2025 Top Reviewer — Top 10%"
+    ],
+    "knowsAbout": [
+      "Deep Learning",
+      "Computer Vision",
+      "Computational Pathology",
+      "Robust Machine Learning",
+      "Domain Generalisation",
+      "Label Noise",
+      "Efficient Deep Learning",
+      "Neural Network Training Dynamics",
+      "Curriculum Learning",
+      "Continual Learning"
+    ],
+    "sameAs": [
+      "https://scholar.google.com/citations?user=VEGYe_UAAAAJ&hl=en",
+      "https://github.com/undercutspiky",
+      "https://www.linkedin.com/in/djay-tomar/"
+    ]
+  }
+}
+</script>

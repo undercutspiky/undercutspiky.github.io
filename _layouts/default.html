@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/assets/css/site.css">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Epilogue:wght@400;500&family=Nanum+Gothic+Coding&family=Raleway:wght@700;900&display=swap" rel="stylesheet">
     {% seo %}
+    <link rel="alternate" type="text/plain" title="LLM-readable profile" href="{{ '/llms.txt' | relative_url }}">
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-CCNJ72T8D0"></script>
     <script>
@@ -14,17 +16,15 @@
       gtag('config', 'G-CCNJ72T8D0');
     </script>
     <!-- Global site tag (gtag.js) - Google Analytics end -->
-    <!-- Favicons Begin-->
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
-    <link rel="manifest" href="/assets/images/favicons/site.webmanifest">
-    <link rel="mask-icon" href="/assets/images/favicons/safari-pinned-tab.svg" color="#2dd4bf">
-    <link rel="shortcut icon" href="/assets/images/favicons/favicon.ico">
-    <meta name="msapplication-TileColor" content="#0a0e1a">
-    <meta name="msapplication-config" content="/assets/images/favicons/browserconfig.xml">
+    <!-- Favicons Begin -->
+    <link rel="icon" href="{{ '/assets/images/brand/favicon.ico' | relative_url }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/images/brand/favicon-32x32.png' | relative_url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/images/brand/favicon-16x16.png' | relative_url }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/images/brand/apple-touch-icon.png' | relative_url }}">
+    <link rel="manifest" href="{{ '/site.webmanifest' | relative_url }}">
+
     <meta name="theme-color" content="#0a0e1a">
-    <!-- Favicons End-->
+    <!-- Favicons End -->
 </head>
 <body class="site-body">
   <!-- Skip-to-content for accessibility -->
