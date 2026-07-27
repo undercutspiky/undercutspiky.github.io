@@ -10,7 +10,7 @@ const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const siteRoot = path.join(repoRoot, '_site');
 const screenshotRoot = process.env.RESPONSIVE_SCREENSHOT_DIR || path.join(os.tmpdir(), 'responsive-check');
 const widths = [320, 390, 768, 1440];
-const baseRoutes = ['/', '/research', '/blog', '/about'];
+const baseRoutes = ['/', '/research/', '/blog/', '/about/'];
 
 async function exists(filePath) {
   try {
@@ -142,9 +142,9 @@ async function testMobileNav(page, baseUrl) {
   assert(await toggle.getAttribute('aria-expanded') === 'false', 'Outside click did not close mobile menu');
 
   const linkTargets = [
-    { text: 'Research', route: '/research' },
-    { text: 'Blog', route: '/blog' },
-    { text: 'About', route: '/about' },
+    { text: 'Research', route: '/research/' },
+    { text: 'Blog', route: '/blog/' },
+    { text: 'About', route: '/about/' },
     { text: 'Home', route: '/' }
   ];
 

@@ -3,11 +3,14 @@ defaults:
       path: ""
     values:
       layout: "default"
-      image: /assets/images/logo2.jpg
+      image:
+        path: /assets/images/brand/og-home.jpg
+        alt: "Dhananjay Tomar — Deep Learning Researcher"
 # SEO
 # --------------------------------------------------------------------------------------------------------
 title: "Dhananjay Tomar"
 tagline: "Deep Learning Researcher"
+logo: /assets/images/brand/icon-512.png
 description: >-
   Dhananjay Tomar is a deep-learning researcher and scientific developer
   working on robustness, computational pathology, efficient model training,
@@ -49,3 +52,4 @@ exclude:
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
+  - jekyll-redirect-from
