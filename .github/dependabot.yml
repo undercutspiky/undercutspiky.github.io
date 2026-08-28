@@ -1,34 +1,34 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /
+    directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
-    groups:
-      npm-minor-and-patch:
+    ignore:
+      - dependency-name: "*"
         update-types:
-          - minor
-          - patch
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
 
   - package-ecosystem: bundler
-    directory: /
+    directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
-    groups:
-      bundler-minor-and-patch:
+    ignore:
+      - dependency-name: "*"
         update-types:
-          - minor
-          - patch
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
 
   - package-ecosystem: github-actions
-    directory: /
+    directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
-    groups:
-      actions-minor-and-patch:
+    ignore:
+      - dependency-name: "*"
         update-types:
-          - minor
-          - patch
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
