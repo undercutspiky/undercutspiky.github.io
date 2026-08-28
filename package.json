@@ -8,9 +8,9 @@
     "test:responsive": "npm run build && bundle exec jekyll build --strict_front_matter && npm run test:responsive:check"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
+    "@axe-core/playwright": "^4.13.0",
     "@tailwindcss/cli": "^4.3.3",
-    "playwright": "^1.62.0",
+    "playwright": "^1.62.1",
     "tailwindcss": "^4.3.3"
   }
 }
