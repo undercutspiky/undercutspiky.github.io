@@ -714,10 +714,17 @@ iframe {
 }
 
 .about-photo {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   max-width: 16rem;
-  border-radius: 0.625rem;
-  border: 2px solid var(--border);
+  height: auto;
+  padding: 6px;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 0.875rem;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25),
+              0 0 0 4px rgba(45, 212, 191, 0.04);
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -1659,9 +1666,21 @@ figure > figcaption {
   font-weight: 700;
 }
 
-.research-body strong {
-  color: #f8fafc;
+.research-body strong,
+.research-body b,
+.post-article strong,
+.post-article b {
+  color: #d6d9b7;
   font-weight: 700;
+}
+
+/* Display equations can scroll within the article on narrow screens. */
+.research-body mjx-container[display="true"],
+.post-article mjx-container[display="true"] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
 }
 
 .research-body a {
@@ -1750,6 +1769,30 @@ figure.blog-post > figcaption {
    NATIVE ARTICLE TABLES
    Shared by blog posts and research pages
    ============================================================ */
+
+/* Readers choose when to play slide builds and can return to a final diagram. */
+.research-figure details > summary {
+  width: fit-content;
+  margin: 0 auto 0.85rem;
+  color: var(--teal);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.research-figure details > summary:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 4px;
+}
+
+.research-animation-hide,
+.research-figure details[open] .research-animation-show,
+.research-figure details[open] + .research-animation-poster {
+  display: none;
+}
+
+.research-figure details[open] .research-animation-hide {
+  display: inline;
+}
 
 .article-table-scroll {
   max-width: 100%;
@@ -2483,6 +2526,19 @@ figure.blog-post > figcaption {
   font-weight: 700;
   letter-spacing: -0.016em;
   line-height: 1.38;
+}
+
+.resume-research-title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.resume-research-title a:hover,
+.resume-research-title a:focus-visible {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .resume-research-subtitle {

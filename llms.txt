@@ -13,7 +13,7 @@ sitemap: false
 > hospital and scanner shifts to noisy labels, gigapixel medical images, and
 > computationally redundant neural networks.
 >
-> With research published at NeurIPS, experience building high-volume ML
+> With research published at NeurIPS, BMVC, and TMLR, experience building high-volume ML
 > systems at SAP, and current cancer-AI research at Oslo University Hospital,
 > he combines deep technical insight with the rare ability to turn ambitious
 > ideas into working systems.
@@ -52,6 +52,11 @@ Important interpretation notes:
 
 ## Selected research
 
+- [That ‘quick’ course project took four years](https://dhananjaytomar.com/2026/11/05/big-layers.html): The story behind Big Layers, from a 2022 course project through a C++ framework, a PyTorch rewrite, and the eventual TMLR acceptance.
+- [To Freeze or Not to Freeze?](https://dhananjaytomar.com/research/big-layers/): TMLR 2026 research on memory-constrained end-to-end whole-slide training, encoder adaptation, and external generalisation.
+- [A Smaller Transformer in Your Transformer](https://dhananjaytomar.com/research/transformer-within-transformer/): BMVC 2026 research on replacing contiguous groups of redundant ViT layers with one learned transformer layer per group, reducing parameters and inference FLOPs. The page explains the method, classification results, histopathology evaluations, and semantic-segmentation limitations.
+- [TWT paper](https://arxiv.org/abs/2609.20100): Full paper by Dhananjay Tomar, Marius Aasan, Andreas Kleppe, and Adín Ramírez Rivera. Tomar and Aasan contributed equally.
+- [TWT code](https://github.com/undercutspiky/TWT): Block discovery, surrogate auditioning, joint feature distillation, and histopathology evaluation code.
 - [Nuclear masks for robust histopathology](https://dhananjaytomar.com/research/shape-based-feature-learning/): NeurIPS 2024 research on encouraging cancer-classification models to rely on nuclear shape and arrangement, improving robustness across hospitals.
 - [Curriculum learning and neural-network training dynamics](https://dhananjaytomar.com/research/curriculum-learning-anns/): The story, findings, failed curricula, and later research connections arising from DJay's Master's thesis.
 - [Complete Master's thesis on Zenodo](https://doi.org/10.5281/zenodo.21500749): Permanently archived 2017 thesis containing the complete experiments, analysis, figures, limitations, and discussion.

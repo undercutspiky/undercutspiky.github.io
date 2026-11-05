@@ -1,0 +1,20 @@
+{% comment %}
+  TWT slide animation with a static fallback and native, keyboard-operable toggle.
+  GIFs loop with a 3 s final hold. Details is collapsed by default so animations
+  run only when a reader requests them; no JavaScript or autoplay is needed.
+{% endcomment %}
+{% assign animation_folder = include.folder | default: 'transformer-within-transformer' %}
+{% assign animation_base = '/assets/images/research/' | append: animation_folder | append: '/' | append: include.name %}
+<figure class="research-figure">
+  <details>
+    <summary><span class="research-animation-show">Play animation</span><span class="research-animation-hide">Show final diagram</span></summary>
+    <picture>
+      <source media="(prefers-reduced-motion: reduce)" srcset="{{ animation_base | append: '.png' | relative_url }}">
+      <img src="{{ animation_base | append: '.gif' | relative_url }}" alt="{{ include.alt | escape }}" loading="lazy" width="{{ include.width }}" height="{{ include.height }}">
+    </picture>
+  </details>
+  <picture class="research-animation-poster">
+    <img src="{{ animation_base | append: '.png' | relative_url }}" alt="{{ include.alt | escape }}" loading="lazy" width="{{ include.width }}" height="{{ include.height }}">
+  </picture>
+  <figcaption>{{ include.caption }}</figcaption>
+</figure>

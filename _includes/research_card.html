@@ -11,10 +11,12 @@
 {% elsif item.status == "Ongoing" %}{% assign badge_class = "research-badge-ongoing" %}
 {% endif %}
 
+{% assign card_src = item.card_image | default: item.image.path | default: item.image %}
+{% assign card_alt = item.card_image_alt | default: item.image_alt | default: item.image.alt | default: '' %}
 <article class="research-card{% if item.featured %} featured{% endif %}">
-  {% if item.image %}
+  {% if card_src and card_src != '' %}
   <a href="{{ item.url | relative_url }}" class="research-card-thumb" tabindex="-1" aria-hidden="true">
-    <img src="{{ item.image }}" alt="{{ item.image_alt | default: '' }}" loading="lazy">
+    <img src="{{ card_src | relative_url | escape }}" alt="{{ card_alt | escape }}" loading="lazy">
   </a>
   {% endif %}
   <div class="research-card-body">

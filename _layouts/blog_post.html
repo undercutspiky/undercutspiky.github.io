@@ -19,10 +19,28 @@ seo:
     </div>
   </header>
   {{ content }}
+
+  {% assign linked_research = "" | split: "" %}
+  {% for item in site.research %}
+    {% if item.draft != true and page.research contains item.slug %}
+      {% assign linked_research = linked_research | push: item %}
+    {% endif %}
+  {% endfor %}
+  {% if linked_research.size > 0 %}
+  <aside class="research-section" aria-labelledby="linked-research-heading">
+    <h2 class="research-section-title" id="linked-research-heading">Read the research</h2>
+    <ul class="related-posts-list">
+      {% for item in linked_research %}
+      <li><a href="{{ item.url | relative_url }}" class="related-post-link"><span class="rp-title">{{ item.title }}</span></a></li>
+      {% endfor %}
+    </ul>
+  </aside>
+  {% endif %}
 </article>
 <script>
   // Add IDs to citations (present at the bottom of a blog post) so that they can be linked to
-  var citations = document.getElementById("citations").getElementsByTagName("li");
+  var citationList = document.getElementById("citations");
+  var citations = citationList ? citationList.getElementsByTagName("li") : [];
   for (var i = 0; i < citations.length; ++i) {
     citations[i].setAttribute("id", "citation" + (i+1));
   }
@@ -30,6 +48,7 @@ seo:
   Array.from(document.getElementsByClassName("ref")).forEach(
   function(elem, index, array){
     citationNo = parseInt(elem.innerText.replace(/[\[\]']+/g,'')); // Remove brackets
+    if (!citations[citationNo-1]) return;
     elem.innerHTML = `<a href=#${"citation" + citationNo}>${elem.innerText}</a>`;
     elem.setAttribute("data-text", citations[citationNo-1].innerText);
     // Add link for up arrow
