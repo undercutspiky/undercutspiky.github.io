@@ -57,10 +57,28 @@ seo:
   </header>
 
   <!-- ── Hero image ────────────────────────────────────────────────────────── -->
-  {% if page.image %}
+  {% comment %}
+    `image` may be the inherited SEO {path, alt} object from _config.yml.
+    Only an explicit hero_image or a legacy image string is a visible hero.
+    hero_image: false disables the hero, including a legacy image string.
+  {% endcomment %}
+  {% assign hero_src = page.hero_image %}
+  {% if hero_src == nil and page.image and page.image.path == nil %}
+    {% assign hero_src = page.image %}
+  {% endif %}
+  {% assign hero_alt = page.hero_image_alt | default: page.image_alt | default: '' %}
+  {% assign hero_caption = page.hero_caption | default: hero_alt %}
+  {% if hero_src and hero_src != '' %}
   <figure>
-    <img class="research-hero-img" src="{{ page.image }}" alt="{{ page.image_alt | default: '' }}" loading="lazy">
-    {% if page.image_alt %}<figcaption>{{ page.image_alt }}</figcaption>{% endif %}
+    {% if page.hero_image_mobile %}
+    <picture>
+      <source media="(max-width: 640px)" srcset="{{ page.hero_image_mobile | relative_url | escape }}">
+      <img class="research-hero-img" src="{{ hero_src | relative_url | escape }}" alt="{{ hero_alt | escape }}" loading="lazy">
+    </picture>
+    {% else %}
+    <img class="research-hero-img" src="{{ hero_src | relative_url | escape }}" alt="{{ hero_alt | escape }}" loading="lazy">
+    {% endif %}
+    {% if hero_caption %}<figcaption>{{ hero_caption | escape }}</figcaption>{% endif %}
   </figure>
   {% endif %}
 

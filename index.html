@@ -141,7 +141,18 @@ image: /assets/images/brand/og-home.jpg
                   <span class="resume-status resume-status-{{ status_class }}">{{ item.status }}</span>
                   <span>{{ item.type }}</span>
                 </div>
-                <h3 class="resume-research-title">{{ item.title }}</h3>
+                {% assign title_link = item.links | first %}
+                {% assign title_url = title_link.url %}
+                {% assign title_internal = title_link.internal %}
+                {% if item.research_slug %}
+                  {% assign research_post = site.research | where: "slug", item.research_slug | first %}
+                  {% if research_post and research_post.draft != true %}
+                    {% assign title_url = research_post.url %}
+                    {% assign title_internal = true %}
+                  {% endif %}
+                {% endif %}
+                {% if title_internal %}{% assign title_url = title_url | relative_url %}{% endif %}
+                <h3 class="resume-research-title">{% if title_url %}<a href="{{ title_url | escape }}"{% unless title_internal %} target="_blank" rel="noopener noreferrer"{% endunless %}>{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</h3>
                 <p class="resume-card-summary">{{ item.summary }}</p>
 
                 {% if item.links %}

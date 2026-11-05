@@ -56,8 +56,8 @@ experience:
     organisation: "University of Oslo"
     organisation_url: "https://www.mn.uio.no/ifi/english/people/aca/dhananjt/"
     summary: >-
-      Researching robust and efficient computational pathology, including NeurIPS 2024
-      work on nuclear-shape-guided learning; two additional manuscripts are under review.
+      Researching robust and efficient computational pathology, including papers at
+      NeurIPS 2024, BMVC 2026, and TMLR 2026.
     detail: >-
       I co-supervised two master's students and, for nearly four years, taught the course 
       Deep Learning for Image Analysis, where I lectured, designed mandatory assignments, 
@@ -88,10 +88,51 @@ experience:
         url: "https://patents.google.com/patent/US20230334309A1/en"
 
 research:
+  - year: "2026"
+    status: "Published"
+    type: "TMLR 2026"
+    title: "To Freeze or Not to Freeze? Training whole-slide models end to end"
+    research_slug: "big-layers"
+    summary: >-
+      Makes whole-slide image encoders trainable when their activations won't fit in GPU
+      memory. Fine-tuned H0-mini can compete with much larger frozen models on TCGA-PRAD,
+      although freezing still wins on CAMELYON16.
+    links:
+      - label: "Story"
+        url: "/2026/11/05/big-layers.html"
+        internal: true
+      - label: "Paper"
+        url: "https://openreview.net/forum?id=ixDBhyLgWs"
+      - label: "Code"
+        url: "https://github.com/undercutspiky/big-layers"
+      - label: "Talk"
+        url: "https://www.youtube.com/watch?v=EM2VGHzHn9g"
+
+  - year: "2026"
+    status: "Published"
+    type: "BMVC 2026"
+    title: "A Smaller Transformer in Your Transformer"
+    research_slug: "transformer-within-transformer"
+    summary: >-
+      Replaces groups of redundant vision-transformer layers with one learned layer per
+      group. Reduces both parameters and inference computation while keeping classification
+      performance competitive, with gains in several histopathology settings.
+    links:
+      - label: "Story"
+        url: "/2026/11/02/transformer-within-transformer.html"
+        internal: true
+      - label: "Paper"
+        url: "https://arxiv.org/abs/2609.20100"
+      - label: "Code"
+        url: "https://github.com/undercutspiky/TWT"
+      - label: "Talk"
+        url: "https://www.youtube.com/watch?v=Qyu1QHbLIJ0"
+
   - year: "2024"
     status: "Published"
     type: "NeurIPS 2024"
     title: "Are nuclear masks all you need for improved out-of-domain generalisation?"
+    research_slug: "shape-based-feature-learning"
     summary: >-
       Uses nuclear masks during training to steer a cancer classifier toward nuclear shape and
       organisation, while requiring only the original image at inference; improves transfer
@@ -111,14 +152,12 @@ research:
     status: "Thesis"
     type: "MSc thesis · IDSIA / USI"
     title: "Curriculum learning and neural-network training dynamics"
+    research_slug: "curriculum-learning-anns"
     summary: >-
       Tracked examples through training using time-to-learn, loss changes, and computation
       selected by Highway Network gates. The experiments exposed multiple notions of
       difficulty and showed that a batch's effect changes with the model's training state.
     links:
-      - label: "Project story"
-        url: "/research/curriculum-learning-anns/"
-        internal: true
       - label: "Full thesis"
         url: "https://doi.org/10.5281/zenodo.21500749"
       - label: "Code"

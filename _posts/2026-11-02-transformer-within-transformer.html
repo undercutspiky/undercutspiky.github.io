@@ -1,0 +1,110 @@
+---
+layout: blog_post
+title: "My fastest research project: the story behind TWT"
+description: "A conversation about catastrophic forgetting turned into a weekend compression experiment, then our BMVC 2026 paper."
+image: /assets/images/research/transformer-within-transformer/macro-step.png
+research:
+  - transformer-within-transformer
+---
+
+<p class="blog-post">
+  I had been thinking about catastrophic forgetting (models forgetting old tasks while learning new ones) and considering digging into some maths topics because I had some ideas that required it. So I went to Marius to talk about it and see if he, as a mathematician, could point me to some reading material.
+</p>
+
+<p class="blog-post">
+  We ended up talking about quite a few things, and one thing I mentioned was this paper by Veit et al., <a href="https://arxiv.org/abs/1605.06431" target="_blank" rel="noopener noreferrer"><em>Residual Networks Behave Like Ensembles of Relatively Shallow Networks</em></a> (NIPS 2016), where they did stuff like delete ResNet blocks and even swap their order without necessarily losing much performance. I was wondering if something similar existed for ViTs... if someone had tried the same thing there. I sent him Veit et al.'s paper on 15 January 2026.
+</p>
+
+<h2 class="blog-post">One paper led to another</h2>
+
+<p class="blog-post">
+  Marius replied with <a href="https://arxiv.org/abs/2512.19941v1" target="_blank" rel="noopener noreferrer"><em>Block-Recurrent Dynamics in Vision Transformers</em></a>, the paper behind the Block Recurrent Hypothesis (BRH) and Raptor. It didn't test swapping layers, but it argued that groups of consecutive layers could be approximated by one shared layer applied repeatedly.
+</p>
+
+<p class="blog-post">
+  I thought that was a cool paper! What caught my attention was that they were compressing an <em>existing</em> Transformer. I already knew of <a href="https://arxiv.org/abs/1807.03819" target="_blank" rel="noopener noreferrer">Universal Transformers</a> and <a href="https://arxiv.org/abs/1909.01377" target="_blank" rel="noopener noreferrer">Deep Equilibrium Models</a>, which built weight sharing into the model from the beginning. Here, you could take a Transformer that had already been trained and learn a recurrent version of it afterwards.
+</p>
+
+<p class="blog-post">
+  The next day, I sent Marius <a href="https://arxiv.org/abs/2505.02819v3" target="_blank" rel="noopener noreferrer"><em>ReplaceMe</em></a>. These guys approximated removed Transformer blocks with a linear mapping, fitted on a small calibration dataset using least-squares regression. They didn't need to fine-tune the model afterwards, but a linear mapping is also a pretty restrictive replacement.
+</p>
+
+<p class="blog-post">
+  Taken together, these papers made me wonder whether we could replace groups of "similar" layers with just <strong>one ordinary Transformer layer</strong> and retrain the smaller model on the target dataset. If we could compress something like DINOv2 far enough without losing performance, that could be useful in histopathology, where people often keep these big foundation models frozen. It might even make fine-tuning them more practical, which was something we (Andreas and I) wanted to advocate. Marius thought that sounded cool and said he'd take a look.
+</p>
+
+<p class="blog-post">
+  By 19 January, I was reporting back after trying it over the weekend. I'd halved the number of layers, trained the smaller model, and tested its extracted features. <strong>It worked!</strong> The initial, incomplete results looked about as good as the original model's, and that model was already a "small" model distilled from a much larger one. I was already thinking about using this smaller version myself.
+</p>
+
+<h2 class="blog-post">The first version</h2>
+
+<p class="blog-post">
+  For this experiment, I found blocks of layers to replace by looking at cosine similarity, then averaged the block's parameters to use as a starting point. I had two stages back then: the first trained each surrogate layer, initialised from the averaged parameters, independently. In stage two, all the surrogate layers were stitched together and the network was trained with deep supervision... so with mean squared error (MSE) at every block boundary besides the final loss.
+</p>
+
+<h2 class="blog-post">ImageNet was harder</h2>
+
+<p class="blog-post">
+  Both Marius and I were working on multiple projects (as is usual for both of us, I think), so neither of us worked on it for a while. At some point, I started working on ImageNet-1k (IN1K) with DINOv2. I couldn't get the pruned model to perform as well as DINOv2, so I started looking at how other methods trained their models and found several hacks, like certain augmentations and using the IN1K labels instead of unsupervised MSE distillation. Still not good.
+</p>
+
+<p class="blog-post">
+  Then I thought averaging the blocks might not be the best idea, so I developed the <a href="{{ '/research/transformer-within-transformer/' | relative_url }}">audition strategy you see in the paper</a>, and it improved things. I was still exploring the hyperparameters and stuff because I was still a bit away from achieving an accuracy close to the baseline teacher model: DINOv2.
+</p>
+
+<p class="blog-post">
+  I think it was late February or March already when Marius also finally found time to start working on the paper. I handed over my code, and he used that as the starting point to run the IN1K experiments. He did his thing and developed the staggered cosine schedule and LayerScale to get the accuracy as close to the baseline model as possible.
+</p>
+
+<p class="blog-post">
+  I tried both, but they didn't help for histopathology, and I also noticed that LayerScale, in my case, didn't do anything. The learned LayerScale values after training were very close to 1.0, so it was simply not needed.
+</p>
+
+<p class="blog-post">
+  One nice result from the final experiments: with ABMIL, the four-layer Hibou-B reached <strong>96.16% accuracy on CAMELYON16</strong>, an external breast cancer metastasis dataset, compared with 90.52% for the 12-layer original. So there were cases where we could make the model much smaller and get better results too.
+</p>
+
+<h2 class="blog-post">Following the teacher's geometry</h2>
+
+<p class="blog-post">
+  Meanwhile, Adín and Marius developed the theoretical framework you see in the paper. I thought that if we're proposing the idea that our pruned model basically follows the path of the teacher geometrically, then it'd be nice to show it empirically somehow.
+</p>
+
+<p class="blog-post">
+  I found <a href="https://papers.nips.cc/paper_files/paper/2019/hash/cfcce0621b49c983991ead4c3d4d3b6b-Abstract.html" target="_blank" rel="noopener noreferrer">a paper showing how intrinsic dimension (ID) varies across the layers of a trained network</a>, computed via the <a href="https://doi.org/10.1038/s41598-017-11873-y" target="_blank" rel="noopener noreferrer">Two-NN estimator</a>, though it used CNNs instead of ViTs. ID is roughly how many independent directions the features vary along. I computed ID for the student and teacher H0-mini models. The only issue was that while ID seemed to follow the same broad pattern, its values were lower than the teacher's.
+</p>
+
+<p class="blog-post">
+  Andreas suggested that the extra degrees of freedom used by the teacher model might not be needed, and that the student might be more robust to deviations. So I computed the ID with colour augmentations; it turned out that the student's ID estimates varied less under colour jitter. Combined with the fact that the student didn't lose performance on average in our histopathology experiments, we could propose this as a hypothesis, which we do in the paper.
+</p>
+
+<figure class="blog-post">
+  <img src="{{ '/assets/images/research/transformer-within-transformer/intrinsic-dimension-h0-mini-raw.png' | relative_url }}" alt="Intrinsic dimension of H0-mini's raw patch representations across teacher layer indices zero to eleven. The green six-layer student broadly follows the orange teacher's profile, with lower values and narrower variation bands." loading="lazy" width="780" height="576">
+  <figcaption>H0-mini's raw patch representations from the final paper. Green: six-layer student. Orange: teacher. The student broadly follows the teacher's ID profile, with lower values and less variation under augmentations.</figcaption>
+</figure>
+
+<h2 class="blog-post">A change of venue</h2>
+
+<p class="blog-post">
+  We initially planned to submit the paper to NeurIPS, but Marius or Adín found the <a href="https://arxiv.org/abs/2410.04941" target="_blank" rel="noopener noreferrer">TOAST paper</a>, and its theoretical framework looked similar to ours, so we decided to work on ours a bit more and submit it to BMVC instead. This also gave us time to add more experiments.
+</p>
+
+<p class="blog-post">
+  BMVC was a success; we got a score of "weak accept" (the second-highest rating) from all three reviewers. We posted the rebuttal and hoped for an oral, but we got a poster instead; still, an accept is an accept.
+</p>
+
+<p class="blog-post">
+  Anyway, this was my fastest project ever. We started working on it seriously only in February and submitted to BMVC just three months later! I hope our method stays state of the art, or at least competitive, for some time. It'd be very interesting to see how others beat our method on this ViT depth-pruning task.
+</p>
+
+<h2 class="blog-post">Paper and resources</h2>
+
+<ul class="blog-post">
+  <li><a href="{{ '/research/transformer-within-transformer/' | relative_url }}">Research post: the method, results, and geometric analysis</a></li>
+  <li><a href="https://arxiv.org/abs/2609.20100" target="_blank" rel="noopener noreferrer">Full paper on arXiv, including the appendix</a></li>
+  <li><a href="https://openreview.net/forum?id=GkVIVRiwkE" target="_blank" rel="noopener noreferrer">Conference version on OpenReview</a></li>
+  <li><a href="https://github.com/undercutspiky/TWT" target="_blank" rel="noopener noreferrer">TWT code</a></li>
+  <li><a href="https://www.youtube.com/watch?v=Qyu1QHbLIJ0" target="_blank" rel="noopener noreferrer">Watch the TWT talk on YouTube</a></li>
+</ul>
+

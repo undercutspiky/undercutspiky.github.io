@@ -1,0 +1,173 @@
+---
+layout: blog_post
+title: "That ‘quick' course project took four years"
+description: "We thought this would be a quick project. Then came a C++ framework, a Python rewrite, three conference rounds, and TMLR."
+image: /assets/images/research/big-layers/big_conv.png
+research:
+  - big-layers
+---
+
+<h2 class="blog-post" id="a-course-project-sounded-like-a-great-deal">A course project sounded like a great deal</h2>
+
+<p class="blog-post">It all started with a high-performance computing course I took at UiO to meet my PhD programme requirements. I needed 30 ECTS in total. It was the first course I took after the mandatory, utterly useless and boring Ethics course.</p>
+
+<p class="blog-post">I joined UiO in October 2021 and took this course, IN9050, the following semester, in early 2022. The profs said that PhD students could pass the course through a project, and could even work on their own PhD project if it fitted the course! Basically, I could keep working on my PhD and present that work as the course project. I couldn't have asked for anything better, I guess… or so I thought.</p>
+
+<p class="blog-post">I was starting to learn about histopathology, the field I was supposed to be working on for my PhD. One thing I learnt from Andreas, my supervisor, was that they use something called Multiple Instance Learning (MIL) because the images, Whole-Slide Images (WSIs), are too big to process on a GPU.</p>
+
+<p class="blog-post">The idea is to divide the image into small, manageable crops, like 224 × 224 pixels, encode them independently, and pass the embeddings through an MIL head to predict something for the whole slide. You keep the encoder frozen because otherwise you might not be able to use enough tiles to predict something for the WSI.</p>
+
+<p class="blog-post">You understand why, right? You don't know where the signal for whatever you're trying to predict is in the WSI. If you sample only a small number of tiles from an image that can easily be 50,000 × 50,000 pixels, your “bag”, the group of tiles you've sampled, might miss that signal entirely.</p>
+
+<p class="blog-post">Anyway, you freeze the encoder, save the embeddings to disk, and train only the MIL head. I had two problems with this: a) why keep the encoder frozen, and b) why use MIL in the first place? Since I had only worked with natural images, NLP, and invoices, it felt a bit weird that the encoder didn't even see the whole image.</p>
+
+<h2 class="blog-post" id="how-hard-could-one-convolution-be">How hard could one convolution be?</h2>
+
+<p class="blog-post">How is the model supposed to make sense of the entire WSI if the encoder, the biggest part of the model, only ever sees a teeny tiny patch of it?</p>
+
+<p class="blog-post">I had an idea: what if we could use RAM, in addition to the GPU, to process the entire image? I'll call CPU memory RAM here, and the GPU's memory VRAM.</p>
+
+<p class="blog-post">I think I was thinking only about convolution when I came up with the idea. A convolution only needs a local neighbourhood for each output position. We could compute one part, send its output back to RAM, move on to the next part, and do the corresponding thing during backward.</p>
+
+<p class="blog-post">Little did I know BatchNorm was gonna be a bitch.</p>
+
+<p class="blog-post">I pitched this to Andreas, and he thought it was good. The course profs okayed it too, and I thought I'd be done pretty soon. At the time, I found two papers close to what I had in mind: training an encoder on an entire WSI.</p>
+
+<p class="blog-post"><a href="https://www.nature.com/articles/s41467-021-21467-y">One used CUDA's unified memory</a>. That lets the CPU and GPU access managed memory while CUDA handles moving data as needed. The implementation used a TensorFlow 1-based setup.</p>
+
+<p class="blog-post">We learnt in the course that while CUDA managed memory is kinda okay, CUDA has no idea what algorithm you're trying to implement, so its data transfers between RAM and VRAM aren't necessarily optimal for your needs. If you know what your algorithm is doing, you can design a custom method around that and transfer data more efficiently instead of relying on CUDA to figure it out. So, that work was not going to be a problem, also because while TF lets you use this, it didn't work in either TF v1 or v2 when I tried it, and PyTorch doesn't provide an API for it either.</p>
+
+<p class="blog-post">The <a href="https://geertlitjens.nl/publication/pinc-20/pinc-20.pdf">second paper used streaming CNNs</a>. Their idea was to divide the image into patches, pass each patch through part of the encoder, and assemble the feature map by streaming the patches through. But the streaming part couldn't handle BatchNorm (BN) the way I needed it. BN needs statistics over the complete input tensor, and you need those statistics BEFORE you pass its normalised output to the next layer.</p>
+
+<p class="blog-post">So neither approach quite covered what I wanted.</p>
+
+<h2 class="blog-post" id="so-i-built-a-tiny-deep-learning-framework">So I built a tiny deep-learning framework</h2>
+
+<p class="blog-post">CUDA programming mostly meant C++ to me. I tried to find out whether I could use PyTorch, either in Python or C++, to implement my idea. I don't remember everything I looked at or exactly what algorithm I had in my head. Still, I somehow concluded that I needed to write CUDA code and couldn't use the existing PyTorch APIs for what I wanted.</p>
+
+<p class="blog-post">So I decided to create my own mini/micro deep-learning framework, based on CUDA and cuDNN, in C++!</p>
+
+<p class="blog-post">Fortunately, having been in the field since around 2013, I could look to frameworks like Caffe (remember that, old-timers?) for inspiration.</p>
+
+<p class="blog-post">I implemented my idea for a convolution layer and presented it to pass the course. I used CUDA streams to overlap data transfer with computation and found that really small chunks worked best in my tests, as they allowed more overlap.</p>
+
+<p class="blog-post">I eventually implemented everything from scratch: optimisers, tensors, activation functions, the skip-connection mechanism, etc. I built a tiny C++ framework where I could implement basic ConvNets like ResNets, with an API somewhat similar to PyTorch. I tested it on a histopathology dataset, and the training worked.</p>
+
+<p class="blog-post">BN turned out to be more difficult. I had to derive its backward pass by hand very carefully and run multiple passes between the GPU and host to compute the statistics and gradients.</p>
+
+<p class="blog-post">In principle, I now had the pieces needed for forward and backward passes on WSI-sized inputs. I don't remember whether I actually ran complete WSI-sized training in C++. I probably tested the forward and backward passes. If I remember correctly, I also compared their values against PyTorch to verify my code, and they matched. So, at least I had that much going for myself.</p>
+
+<p class="blog-post">There were a few problems, though:</p>
+
+<ol class="blog-post">
+  <li>Others would need to use my “framework” for whatever they wanted to do, which meant basically no one would ever use it… obviously.</li>
+  <li>Somehow, my code was orders of magnitude slower than PyTorch, even when I kept everything on the GPU, and I couldn't figure out why. A few days ago, in 2026, ChatGPT looked at it and suggested that I was probably freeing memory too often instead of returning it to an allocation pool, as PyTorch does. It also pointed out that my BN layer was always writing its output back to RAM, even when that wasn't required. Anyway, I couldn't figure it out at the time.</li>
+  <li>C++ was really annoying to use, and I'm not an expert. I had done undergrad-level projects and a whole lot of competitive programming, but no real-world C++ software development. I wasn't familiar with best practices, and even compiling stuff was a pain.</li>
+</ol>
+
+<h2 class="blog-post" id="new-years-eve-with-a-memory-leak">New Year's Eve with a memory leak</h2>
+
+<p class="blog-post">I think it was late December 2022, though it could have been a bit earlier, that I decided to port the project to PyTorch in Python. By then, after implementing everything myself, I could see how to do it through custom layers.</p>
+
+<p class="blog-post">Implementing everything in C++ was useful, though. It made me think about details I might not have considered if I'd gone straight to PyTorch. For example, a channels-last format let me transfer a complete spatial chunk as a contiguous block of memory. I only realised the significance of that because I'd had to implement and transfer tensors manually.</p>
+
+<p class="blog-post">I remember skipping the New Year's Eve fireworks to stay home and work on this. My PyTorch version was working, but repeated passes through a layer seemed to leak memory, or at least something was happening that kept increasing RAM usage in a loop where it should have stayed constant. I managed to bring it down a bit over the Christmas and New Year “vacation”.</p>
+
+<h2 class="blog-post" id="the-whole-slide-was-the-wrong-battle">The whole slide was the wrong battle</h2>
+
+<p class="blog-post">Fast-forward a bit. My “third-semester evaluation” was coming up, and I still hadn't managed to get useful results. There were several reasons, and I don't remember exactly which order I tried everything in:</p>
+
+<ul class="blog-post">
+  <li>Training on entire WSIs meant super-long training runs, sometimes several weeks. I didn't have time for that, so I was training models partially and trying to judge their performance. I'd have to think hard to recall exactly what I was doing. I was trying to predict mutations from WSIs because that was apparently a hard task, and hard tasks were where we expected to make gains; other tasks already seemed saturated.</li>
+  <li>The results were far from good. I tried strategies like first training the encoder in an MIL setup, then using it as the starting point for training on entire WSIs. It worked, but the results still weren't good enough.</li>
+  <li>Our cluster wasn't very friendly to long runs, so running several experiments in parallel to try different hyperparameters wasn't practical. I also needed a HUGE amount of RAM. Requesting it through Slurm meant occupying the whole machine, with all its GPUs, and getting low priority in the queue.</li>
+  <li>Training on such large images was uncharted territory for me. The architectures hadn't been designed for those inputs. Andreas pointed out the small receptive fields of these ConvNets, for example. I had to work out whether poor results came from the hyperparameters, the architecture, or something else entirely, like the network overfitting to the shapes of the WSIs.</li>
+</ul>
+
+<p class="blog-post">I had started getting a LOT of pressure from Andreas to get something done before that evaluation, even though I'd already been working full on with almost no vacation. While I was under stress over this project, I also had to start <a href="/2026/07/19/nuclear-masks-and-domain-generalisation.html">the project that became my NeurIPS paper</a> so I'd have something to show. Now I was working on two projects in parallel.</p>
+
+<p class="blog-post">Eventually, I gave up on training on entire WSIs. This was after I managed to get a new machine in the cluster, originally bought for my project, I think, almost exclusively to myself for several months. That finally let me run long training jobs and try at least a few basic hyperparameters and architectures.</p>
+
+<p class="blog-post">By the way, the convolution animation in <a href="/research/big-layers/">the technical post</a> and <a href="https://www.youtube.com/watch?v=EM2VGHzHn9g">the talk</a> shows a WSI because I originally made it for that third-semester evaluation, before I'd given up on this direction. I kept the slide because it explains the basic algorithm well.</p>
+
+<h2 class="blog-post" id="back-to-mil">Back to MIL</h2>
+
+<p class="blog-post">I realised that I could also use my method in the MIL setup to train the model end to end (E2E). So I switched to that.</p>
+
+<p class="blog-post">I'd been working on PANDA, I think because its needle-biopsy slides are relatively small. Training on an entire WSI becomes faster and less memory-intensive when the WSI is “small”. I continued with PANDA when I switched to MIL.</p>
+
+<p class="blog-post">Upon Andreas' suggestion, I used TCGA-PRAD as the external test set, with PANDA supplying the training and internal test data. I'd been using ResNet-18 this whole time, so I continued with that too.</p>
+
+<p class="blog-post">When I started this project, and up until around 2023, ResNet-50 was a conventional choice for feature extraction. If I remember correctly, its features weren't much better than ResNet-18's on PANDA. ResNet-50 was too big for the E2E setup I could practically train at the time anyway.</p>
+
+<h2 class="blog-post" id="miccai-no-rebuttal">MICCAI: no rebuttal</h2>
+
+<p class="blog-post">I submitted the paper to MICCAI in February 2025. I had amazing results with ResNet-18, so I was expecting an easy acceptance. The opposite happened.</p>
+
+<p class="blog-post">MICCAI had <a href="https://conferences.miccai.org/2025/en/THE-MICCAI-REVIEW-PROCESS.html">an early-rejection stage</a>, meaning some papers didn't get a rebuttal. Ours was one of them. We had one very positive review with constructive criticism and two weird/awful/bad reviews where, to me, the reviewers hadn't understood the paper or its motivation. I thought we could have clarified those issues in a rebuttal, but that opportunity never came.</p>
+
+<p class="blog-post">I was pissed, but what can you do?</p>
+
+<h2 class="blog-post" id="iclr-enter-the-foundation-models">ICLR: enter the foundation models</h2>
+
+<p class="blog-post">Next, I submitted to ICLR. I added performance graphs for ResNet-18 and ResNet-50, plus two datasets: CAMELYON17 and CAMELYON16, with CAM16 as the external test set.</p>
+
+<p class="blog-post">This time, all three reviewers recommended rejection. They asked for comparisons with foundation models, which had gained momentum by then. I did provide those, reluctantly, in the rebuttal.</p>
+
+<p class="blog-post">The point of the paper, as I saw it, was to show what we could gain by training E2E, not to achieve state-of-the-art (SOTA) results. But the reviewers were demanding SOTA results because that's unfortunately how the world is. People in AI, unfortunately, care more about SOTA results than about moving the field forward.</p>
+
+<p class="blog-post">They wanted us to find a setup where our E2E-trained ResNets outperformed foundation models, or fine-tune foundation models themselves to achieve SOTA. I just wanted to ENABLE E2E training so people could test whether frozen encoders were really the best choice for their datasets.</p>
+
+<p class="blog-post">Another point was that E2E training unlocks things like domain-generalisation methods that change the encoder to make it more robust. That line of research gets killed entirely if you demand SOTA from the paper that enables you to pursue it.</p>
+
+<p class="blog-post">But the reviewers were adamant. We withdrew after the rebuttal because they all still recommended rejection, and our ResNets obviously weren't better than the foundation models.</p>
+
+<h2 class="blog-post" id="vits-forgetting-and-another-rejection">ViTs, forgetting, and another rejection</h2>
+
+<p class="blog-post">After that, I found a way to modify my algorithm to train ViTs. I explain <a href="/research/big-layers/">how that works in the technical post</a>.</p>
+
+<p class="blog-post">Fine-tuning H0-mini initially didn't outperform the bigger frozen foundation models. Now, the apples-to-apples comparison is frozen H0-mini versus fine-tuned H0-mini, but read the previous section on how the world unfortunately works.</p>
+
+<p class="blog-post">I suspected catastrophic forgetting and found that a very low learning rate worked better. Fortunately, I'd recently explored continual learning. I immediately realised that <a href="https://arxiv.org/abs/1606.09282">Learning without Forgetting (LwF)</a>, a popular method I'd tried and tested on CIFAR-10, could be used here. And it worked!</p>
+
+<p class="blog-post">Now the results were better. On PANDA to TCGA-PRAD, adapted H0-mini could match or beat the larger frozen models we compared against. But it still couldn't outperform frozen H0-mini on CAMELYON16, possibly because CAMELYON17's training set was small and frozen H0-mini was already at about 97.7% accuracy externally.</p>
+
+<p class="blog-post">On the side, I also tried to make the ResNet method more efficient. You can find that attempt in <a href="https://github.com/undercutspiky/big-layers/tree/main/big_layers_v2">big_layers_v2 in the repository</a>, but I didn't fully succeed.</p>
+
+<p class="blog-post">With the paper reframed, the method working for both ConvNets and ViTs, and the PANDA/TCGA-PRAD results, I thought I'd easily get into ECCV. But no. All rejects yet again!</p>
+
+<p class="blog-post">I was pissed off at the reviewers again, like at MICCAI. This time, it felt like the complaint was that we weren't SOTA EVERYWHERE! I thought I'd made it clear that beating every benchmark wasn't the point, but the reviews were asking for the opposite. It was clear to me that there was no way to convince them to change their minds, so I withdrew.</p>
+
+<p class="blog-post">TMLR had been a backup plan because <a href="https://jmlr.org/tmlr/acceptance-criteria.html">it doesn't require the studied method to be novel or to achieve a new benchmark SOTA</a>. Some reviewers had complained about a lack of novelty. We'd spent years getting the complete architecture trainable under these memory constraints, and the novelty was lacking! Great! Some reviewers at ICLR had appreciated the novelty, though.</p>
+
+<h2 class="blog-post" id="tmlr-at-last">TMLR, at last</h2>
+
+<p class="blog-post">I sought ChatGPT's help reworking the language so that proposing a new method was no longer the main pitch. The paper should focus on studying whether E2E training helps, and when it doesn't.</p>
+
+<p class="blog-post">We needed a way to train the full architectures within our memory constraints to do that study. We had developed one, but the main point of the paper was what happened when we used it on the two dataset pairs.</p>
+
+<p class="blog-post">ChatGPT did an amazing job. I submitted to TMLR, and after a lot of extra work in the rebuttal, most of whose demands were very fair, it was finally accepted!</p>
+
+<p class="blog-post">That extra work, by the way, meant I didn't enjoy Bachaturo at all. I overworked, missed my flight, and the replacement flight lost my luggage.</p>
+
+<h2 class="blog-post" id="the-first-project-the-last-acceptance">The first project, the last acceptance</h2>
+
+<p class="blog-post">This was the very first project I started during my PhD and the very last one to get accepted! Andreas and I had thought it would be a quick, easy project. It turned out to be the exact opposite. Most of the delay was due to fucked up reviews.</p>
+
+<p class="blog-post">Still, this project was why I did <a href="/research/transformer-within-transformer/">TWT</a>. I'd seen how painful it was to fine-tune H0-mini E2E. If I could compress it without losing performance, fine-tuning that compressed model could be a game changer.</p>
+
+<p class="blog-post">I also got to see firsthand what I'd only read about: the community focuses too much on SOTA rather than advancing science. Foundation models and reviewers have sort of killed off some branches of research.</p>
+
+<p class="blog-post">If you find a new way to pretrain models, make them robust, or do something that could eventually lead to better foundation models after three or four papers in that direction, how do you publish the foundation work? The rudimentary seed is unlikely to beat foundation models with close-to-saturated performance on existing public benchmarks.</p>
+
+<p class="blog-post">Anyway, I pick new projects very carefully now to avoid getting stuck for several years for not-so-good reasons.</p>
+
+<h2 class="blog-post" id="paper-and-resources">Paper and resources</h2>
+
+<ul class="blog-post">
+  <li><a href="/research/big-layers/">The technical post: the method and results</a></li>
+  <li><a href="https://openreview.net/forum?id=ixDBhyLgWs">The paper on OpenReview</a></li>
+  <li><a href="https://www.youtube.com/watch?v=EM2VGHzHn9g">The talk on YouTube</a></li>
+  <li><a href="https://github.com/undercutspiky/big-layers">The code on GitHub</a></li>
+</ul>
+
