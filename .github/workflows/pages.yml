@@ -1,0 +1,58 @@
+name: Deploy site to Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: Test redirect generation
+        run: python3 -B -m unittest discover -s _tests
+      - name: Build public site
+        run: bundle exec jekyll build --strict_front_matter --baseurl "${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
+      - name: Validate public HTML and internal links
+        run: bundle exec htmlproofer ./_site --disable-external
+      - name: Add unlisted redirects
+        run: python3 scripts/_render_unlisted_redirects.py _site
+        env:
+          UNLISTED_REDIRECTS_JSON: ${{ secrets.UNLISTED_REDIRECTS_JSON }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v5
+        id: deployment
