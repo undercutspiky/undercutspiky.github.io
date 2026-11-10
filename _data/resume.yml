@@ -193,6 +193,12 @@ research:
 
 recognition:
   - eyebrow: "Reviewing"
+    title: "NeurIPS 2026 Top Reviewer Award"
+    text: "Recognized as a Top Reviewer for delivering high-quality paper evaluations."
+    url: "https://neurips.cc/Conferences/2026/ProgramCommittee#main-reviewer-top-reviewer"
+    link_label: "Official Top Reviewer List"
+
+  - eyebrow: "Reviewing"
     title: "NeurIPS 2025 Top Reviewer Award"
     text: "Recognized as a Top Reviewer (Top 10%) for delivering high-quality, timely paper evaluations."
     url: "https://neurips.cc/Conferences/2025/ProgramCommittee#top-reviewer"
@@ -221,3 +227,4 @@ education:
     degree: "BTech in Computer Science and Engineering"
     institution: "Jaypee Institute of Information Technology"
     detail: "Major project on neural-network-based feature selection."
+
