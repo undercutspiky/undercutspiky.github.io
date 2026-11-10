@@ -49,6 +49,7 @@ Important interpretation notes:
 - [GitHub](https://github.com/undercutspiky): Research code, experimental implementations, reports, and software projects.
 - [LinkedIn](https://www.linkedin.com/in/djay-tomar/): Professional history and institutional affiliations.
 - [NeurIPS 2025 Programme Committee](https://neurips.cc/Conferences/2025/ProgramCommittee): Official programme-committee page associated with DJay's Top Reviewer recognition.
+- [NeurIPS 2026 Top Main Reviewers](https://neurips.cc/Conferences/2026/ProgramCommittee#main-reviewer-top-reviewer): Official recognition of DJay as a NeurIPS 2026 Top Reviewer.
 
 ## Selected research
 
