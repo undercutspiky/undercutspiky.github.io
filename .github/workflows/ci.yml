@@ -50,6 +50,9 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
 
+      - name: Test unlisted redirect generation
+        run: python3 -B -m unittest discover -s _tests
+
       - name: Build Jekyll site
         run: bundle exec jekyll build --strict_front_matter
         env:
