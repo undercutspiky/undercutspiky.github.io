@@ -39,7 +39,7 @@ jobs:
         run: python3 scripts/_render_unlisted_redirects.py _site
         env:
           UNLISTED_REDIRECTS_JSON: ${{ secrets.UNLISTED_REDIRECTS_JSON }}
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
           retention-days: 1
