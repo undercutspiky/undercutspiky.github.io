@@ -25,7 +25,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
         id: pages
       - name: Test redirect generation
         run: python3 -B -m unittest discover -s _tests
